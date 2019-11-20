@@ -7,7 +7,7 @@ Created on Tue Nov 12 22:10:26 2019
 import sys
 import json
 from tuning_gpc_main import main
-from Investigation_factory import Investigation_stage
+from Investigation.Investigation_factory import Investigation_stage
 
 
 def tune_with_pygor_from_file(config_file):

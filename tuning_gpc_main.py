@@ -1,6 +1,5 @@
 import multiprocessing
 from pathlib import Path
-import os
 import time
 
 import mkl
@@ -10,12 +9,10 @@ import numpy as np
 
 import matplotlib
 matplotlib.use("SVG")
-import matplotlib.pyplot as plt
 
 import util
 from test_common import Tester
 from BO_common import random_hypersphere
-from GPy_wrapper import GPyWrapper as GP
 from GPy_wrapper import GPyWrapper_Classifier as GPC
 import GP_util
 
@@ -23,7 +20,7 @@ import config
 import config_model
 
 import random_walk as rw
-from pygor_fixvol import PygorRewire
+
 
 def save(save_dir, vols_poff_all, u_all, EI_all, r_all, d_all, vols_poff_axes_all, poff_all, detected_all, logger, extra_measure, obj_val, time_all, time_acq_opt_all, dropped=None):
     # save all data
@@ -55,103 +52,48 @@ def save(save_dir, vols_poff_all, u_all, EI_all, r_all, d_all, vols_poff_axes_al
     if dropped is not None:
         np.save(str(save_dir / 'dropped.npy'), dropped)
 
-def main():
+def main(configs):
 
-    # experiment-specific parameters
-    conf_name = 'config2'
-    if conf_name == 'config1':
-        conf_func = config.config1
-        ip = "http://129.67.86.107:8000/RPC2"
-        save_dir = Path('./save_Dominic_ABL_group_optparam_run2')
-        settletime, settletime_big = 0.01, 0.03 # settletime_big is for shuttling, 'None' disables shuttling
-        # ['c3', 'c4', 'c5', 'c6', 'c7', 'c8', 'c9', 'c10']
-        origin = -100.
-        threshold_low = 0.0 # for pinchoff detector
-    elif conf_name == 'config2':
-        # ['c3', 'c4', 'c8', 'c10', 'c11', 'c12', 'c16']
-        conf_func = config.config2
-        ip = 'http://129.67.85.38:8000/RPC2'
-        save_dir = Path('./save_Basel2_group')
-        settletime, settletime_big = 0.02, 0.02 # settletime_big is for shuttling, 'None' disables shuttling
-        origin = -100.
-        threshold_low = 2.e-11
-    elif conf_name == 'dummy':
-        import pygor_dummy
-        box_dim = 5
-        box_a = -1000. * np.ones(box_dim)
-        box_b = 1000. * np.ones(box_dim)
-        shape = pygor_dummy.Box(ndim=box_dim, a=box_a, b=box_b)
-        th_leak = np.array([-500., -400., -300., 0., 0.])
-        shape = pygor_dummy.Leakage(shape, th_leak)
-        save_dir = Path('./save_dummy')
-        origin = -100.
-        threshold_low = 0.2
-    else:
-        raise ValueError('Unsupported setup')
+   
+    save_dir = Path(config['save_dir'])
     save_dir.mkdir(exist_ok=True)
+    
+    jump = config['jump']
+    measure = config['measure']
+    
+    
+    general_configs = config['general']
+    detector_configs = config['detector']
+    origin = general_configs['origin']
+    ub_short = general_configs['ub_box']
+    lb_short = general_configs['lb_box']
+    direction = general_configs['direction']
+    
+    bound = np.where(direction>0,ub_short,lb_short)
+    
+    maxc, minc = get_current_domain(jump,measure,origin,bound)
+    
+    p_low_thresh = detector_configs['th_low']
+    p_high_thresh = detector_configs['th_high']
 
-    if conf_name != 'dummy':
-        pg, active_gate_idxs, lb_short, ub_short, max_current, min_current, set_big_jump, set_small_jump = config.setup_pygor(conf_func, ip, settletime, settletime_big)
-    else:
-        pg, active_gate_idxs, lb_short, ub_short, max_current, min_current, set_big_jump, set_small_jump = config.setup_pygor_dummy(shape)
-    threshold_high = 0.8 * max_current
-    num_active_gates = len(active_gate_idxs)
+    threshold_low =  minc + ((minc+maxc)*p_low_thresh)
+    threshold_high =  minc + ((minc+maxc)*p_high_thresh)
+    num_active_gates = len(origin)
 
-    # gate names are for nothing
-    active_gate_names = ["c{}".format(i+1) for i in active_gate_idxs]
-    print(active_gate_names)
 
-    ''' code for grouping gates
-    new_wires = [[1, 0, 0, 0, 0, 0, 0],
-         [0, 1, 0, 0, 0, 0, 1],
-         [0, 0, 1, 0, 0, 1, 0],
-         [0, 0, 0, 1, 1, 0, 0]]
-    pg = PygorRewire(pg, new_wires)
-    lb_short = lb_short[:4]
-    ub_short = ub_short[:4]
-    num_active_gates = len(new_wires)
-    '''
-
-    # choose the origin
-    if np.isscalar(origin):
-        origin = origin*np.ones(num_active_gates)
-    else:
-        if len(origin) != num_active_gates:
-            raise ValueError('Wrong array shape of the origin.')
     origin.dump(str(save_dir / 'origin.npy'))
 
-    params_detector = {'th_low':threshold_low, # detector for conducting -> pinched-off
-            'th_high':threshold_high, # detector for pinched-off -> conducting
-            'd_r':10, # one-step length
-            'len_after_poff':50} # length to search after hitting a pinch-off
-    params_pruning = {'on':True, 'step_back':step_back, 'num': 30}
-    params_sampling = {'num_particles':200, 'max_steps':100000, 'sigma':25}
-    params_general = {'origin': origin, 'num_samples': 2000, 
-            'lb_box':lb_short, 'ub_box':ub_short, 'directions'=-1.0*np.ones(len(lb_short))}
-    params_cond_meas = {'quantile': 0.85, # do conditional measurement when a score is higher than the quantile of the history
-                        'th_score_lb': 0.001} # do nothing if the score is below than this
-    params_gpr = {'on': True, 'min_num_data': 10, # minumum number of data points for inference
-            'factor_std':2.0} 
-    params_gpc = {'on': True, 'min_num_data': 30} # minumum number of data points for inference
-
-    params_all = {'detector':params_detector,
-            'pruning':params_pruning,
-            'sampling':params_sampling,
-            'general':params_general,
-            'cond_meas':params_cond_meas,
-            'gpr':params_gpr,
-            'gpc':params_gpc}
 
 
     detector_pinchoff = util.PinchoffDetectorThreshold(threshold_low) # pichoff detector
     detector_conducting = util.ConductingDetectorThreshold(threshold_high) # reverse direction
     # create a Callable object, input: unit_vector, output: distance between the boundary and the origin
-    tester = Tester(pg, lb_short, ub_short, detector_pinchoff, d_r=params_detector['d_r'], len_after_pinchoff=params_detector['len_after_poff'], logging=True, detector_conducting=detector_conducting, set_big_jump = set_big_jump, set_small_jump = set_small_jump)
+    tester = Tester(jump, measure, lb_short, ub_short, detector_pinchoff, d_r=detector_configs['d_r'], len_after_pinchoff=detector_configs['len_after_poff'], logging=True, detector_conducting=detector_conducting)
 
     ###
     # Set a problem and a model
     ###
-    do_extra_meas = lambda vols, th: config_model.do_extra_meas(pg, vols, th)
+    do_extra_meas = lambda vols, th: config_model.do_extra_meas(jump, measure, vols, th)
     #do_extra_meas = None
 
     ###
@@ -188,8 +130,7 @@ def main():
     GP_util.set_GP_prior(gpc_dict['goodscore'], l_prior_mean, l_prior_var, v_prior_mean, v_prior_var) # do not set prior for kernel var
     '''
 
-    do_random_meas(num_active_gates, tester, params_all, gp_r, gpc_dict, do_extra_meas=do_extra_meas, save_dir=save_dir)
-    print('Time for random sampling: ', time.time()-tic)
+    do_random_meas(num_active_gates, tester, configs, gp_r, gpc_dict, do_extra_meas=do_extra_meas, save_dir=save_dir)
 
 def update_gpc(gpc_dict, points_extended, poff_extended, pks_all, lowres_score, M=None):
     # All points for valid/invalid
@@ -284,6 +225,7 @@ def do_random_meas(num_active_gates, tester, params_all,  gp_r, gpc_dict, do_ext
     lb_box = params_general['lb_box']
     ub_box = params_general['ub_box']
     directions = params_general['directions']
+    step_back = params_pruning['step_back']
 
     vols_poff_all = list()
     vols_poff_axes_all = list()
@@ -454,7 +396,7 @@ def do_random_meas(num_active_gates, tester, params_all,  gp_r, gpc_dict, do_ext
             n = num_active_gates # short notation
             pks_all = np.array([len(ext[3+n]) >= 1 if len(ext)>=4+n else False for ext in extra_meas_all])
             lowres_score = np.array([ext[8+n] if len(ext)>=9+n else 0.0 for ext in extra_meas_all])
-            th_score = np.maximum(th_lowres_lb, np.quantile(lowres_score, params_cond_meas['quantile']))
+            th_score = np.maximum(th_score, np.quantile(lowres_score, params_cond_meas['quantile']))
             
             #print(poff_extended[:len(pks_all)])
             print('peaks and lowres scores')
@@ -499,6 +441,17 @@ def do_random_meas(num_active_gates, tester, params_all,  gp_r, gpc_dict, do_ext
 
     return vols_poff_all, u_all, r_all, d_all, poff_all, detected_all, time_all, time_removed_all, extra_meas_all, origin, vols_poff_axes_all
 
+def get_current_domain(jump,measure,origin,bound):
+    
+    jump(bound)
+    time.sleep(1)
+    minc = measure()
+    
+    jump(origin)
+    time.sleep(1)
+    maxc = measure()
+    
+    return maxc, minc
 
 if __name__ == '__main__':
     main()
