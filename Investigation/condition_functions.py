@@ -8,7 +8,7 @@ Created on Fri Nov 15 07:11:05 2019
 import scipy.signal as signal
 import pickle
 import numpy as np
-from Last_score import final_score_cls
+from scoring.Last_score import final_score_cls
 
 def peak_check(trace,minc,maxc,configs,**kwags):
     prominence = configs['prominance']
