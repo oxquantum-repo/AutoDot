@@ -14,12 +14,12 @@ import util
 from test_common import Tester
 from BO_common import random_hypersphere
 from GPy_wrapper import GPyWrapper_Classifier as GPC
-import GP_util
+import Sampling.gp.GP_util
 
 import config
 import config_model
 
-import random_walk as rw
+import Sampling.random_walk as rw
 
 
 def save(save_dir, vols_poff_all, u_all, EI_all, r_all, d_all, vols_poff_axes_all, poff_all, detected_all, logger, extra_measure, obj_val, time_all, time_acq_opt_all, dropped=None):
