@@ -7,15 +7,14 @@ mkl.set_num_threads(8)
 
 import numpy as np
 
+
 import util
 from test_common import Tester
 from BO_common import random_hypersphere
 from GPy_wrapper import GPyWrapper_Classifier as GPC
+import GP_util
 
-import config
-import config_model
-
-import Sampling.random_walk as rw
+import random_walk as rw
 
 
 def save(save_dir, vols_poff_all, u_all, EI_all, r_all, d_all, vols_poff_axes_all, poff_all, detected_all, logger, extra_measure, obj_val, time_all, time_acq_opt_all, dropped=None):
@@ -51,29 +50,45 @@ def save(save_dir, vols_poff_all, u_all, EI_all, r_all, d_all, vols_poff_axes_al
 def main(configs):
 
    
-    save_dir = Path(config['save_dir'])
+    save_dir = Path(configs['save_dir'])
     save_dir.mkdir(exist_ok=True)
     
-    jump = config['jump']
-    measure = config['measure']
+    jump = configs['jump']
+    measure = configs['measure']
+    investigation_stage = configs['investigation_stage_class']
     
+    inv_max = investigation_stage.inv_max
     
-    general_configs = config['general']
-    detector_configs = config['detector']
-    origin = general_configs['origin']
+    general_configs = configs['general']
+    detector_configs = configs['detector']
+    origin = np.array(general_configs['origin'])
     ub_short = general_configs['ub_box']
     lb_short = general_configs['lb_box']
-    direction = general_configs['direction']
+    direction = np.array(general_configs['directions'])
     
     bound = np.where(direction>0,ub_short,lb_short)
+    real_ub = np.maximum(origin,bound)
+    real_lb = np.minimum(origin,bound)
     
-    maxc, minc = get_current_domain(jump,measure,origin,bound)
+    
+    
+    if detector_configs.get('minc',None) is None:
+        maxc, minc = get_current_domain(jump,measure,origin,bound)
+    else:
+        minc = detector_configs.get('minc',None)
+        maxc = detector_configs.get('maxc',None)
+        
+    print(minc,maxc)
+    
     
     p_low_thresh = detector_configs['th_low']
     p_high_thresh = detector_configs['th_high']
 
     threshold_low =  minc + ((minc+maxc)*p_low_thresh)
     threshold_high =  minc + ((minc+maxc)*p_high_thresh)
+    
+    assert len(origin) == len(ub_short) == len(lb_short) == len(direction)
+    
     num_active_gates = len(origin)
 
 
@@ -84,12 +99,12 @@ def main(configs):
     detector_pinchoff = util.PinchoffDetectorThreshold(threshold_low) # pichoff detector
     detector_conducting = util.ConductingDetectorThreshold(threshold_high) # reverse direction
     # create a Callable object, input: unit_vector, output: distance between the boundary and the origin
-    tester = Tester(jump, measure, lb_short, ub_short, detector_pinchoff, d_r=detector_configs['d_r'], len_after_pinchoff=detector_configs['len_after_poff'], logging=True, detector_conducting=detector_conducting)
+    tester = Tester(jump, measure, real_lb, real_ub, detector_pinchoff, d_r=detector_configs['d_r'], len_after_pinchoff=detector_configs['len_after_poff'], logging=True, detector_conducting=detector_conducting)
 
     ###
     # Set a problem and a model
     ###
-    do_extra_meas = lambda vols, th: config_model.do_extra_meas(jump, measure, vols, th)
+    do_extra_meas = lambda vols, th: investigation_stage.do_extra_measure(vols,minc,maxc, score_thresh=th)
     #do_extra_meas = None
 
     ###
@@ -126,7 +141,7 @@ def main(configs):
     GP_util.set_GP_prior(gpc_dict['goodscore'], l_prior_mean, l_prior_var, v_prior_mean, v_prior_var) # do not set prior for kernel var
     '''
 
-    do_random_meas(num_active_gates, tester, configs, gp_r, gpc_dict, do_extra_meas=do_extra_meas, save_dir=save_dir)
+    do_random_meas(num_active_gates, inv_max, tester, configs, gp_r, gpc_dict, do_extra_meas=do_extra_meas, save_dir=save_dir)
 
 def update_gpc(gpc_dict, points_extended, poff_extended, pks_all, lowres_score, M=None):
     # All points for valid/invalid
@@ -172,7 +187,7 @@ def predict_probs(points, gpc_dict):
         p2 = gpc_dict['peak'].predict_prob(points)[:,0]
         probs += [p2]
 
-    if gpc_dict['goodscore'].model is not None:
+    if gpc_dict.get('goodscore',None) is not None:
         p3 = gpc_dict['goodscore'].predict_prob(points)[:,0]
         probs += [p3]
 
@@ -207,7 +222,7 @@ def random_angle_directions(ndim, nsample, directions):
     u = u * mult[np.newaxis,:]
     return u
 
-def do_random_meas(num_active_gates, tester, params_all,  gp_r, gpc_dict, do_extra_meas=None, save_dir=None):
+def do_random_meas(num_active_gates, inv_max,tester, params_all,  gp_r, gpc_dict, do_extra_meas=None, save_dir=None):
     # Unpacking parameters 
     params_general = params_all['general']
     params_pruning = params_all['pruning']
@@ -216,13 +231,19 @@ def do_random_meas(num_active_gates, tester, params_all,  gp_r, gpc_dict, do_ext
     params_gpr = params_all['gpr']
     params_gpc = params_all['gpc']
 
-    origin = params_general['origin']
+    origin = np.array(params_general['origin'])
+    
     num_samples = params_general['num_samples']
-    lb_box = params_general['lb_box']
-    ub_box = params_general['ub_box']
-    directions = params_general['directions']
+    lb_box = np.array(params_general['lb_box'])
+    ub_box = np.array(params_general['ub_box'])
+    directions = np.array(params_general['directions'])
     step_back = params_pruning['step_back']
-
+    
+    bounds = np.where(directions>0,ub_box,lb_box)
+    
+    real_ub = np.maximum(origin,bounds)
+    real_lb = np.minimum(origin,bounds)
+    
     vols_poff_all = list()
     vols_poff_axes_all = list()
     d_all = list()
@@ -241,7 +262,7 @@ def do_random_meas(num_active_gates, tester, params_all,  gp_r, gpc_dict, do_ext
 
     # Parameters for pruning
     hardub = np.zeros(origin.size) # Hardbound of ub_samples
-    ub_samples = origin.copy() # Random samples should be below this point
+    ub_samples = real_ub.copy() # Random samples should be below this point
     origin_to_ub = True
     num_dvec = 0 if params_pruning['on'] is False else params_pruning['num'] # The number of measuring dvec for pruning
 
@@ -273,7 +294,6 @@ def do_random_meas(num_active_gates, tester, params_all,  gp_r, gpc_dict, do_ext
         else:
             print('WARNING: no boundary point is sampled')
             u = random_angle_directions(num_active_gates, 1, directions)[0]
-        print(u)
 
         # Start sampling (multi-processing)
         sampling_on = False
@@ -281,8 +301,11 @@ def do_random_meas(num_active_gates, tester, params_all,  gp_r, gpc_dict, do_ext
             # Initial samples that are inside of the hypersurface
             if samples is None:
                 samples = rw.random_points_inside(num_active_gates, 
-                        params_sampling['num_particles'], gp_r, origin, lb_box, ub_samples)
-            sampler = rw.create_sampler(gp_r, origin, lb_box, ub_samples, 
+                        params_sampling['num_particles'], gp_r, origin, real_lb, ub_samples)
+                #print(samples,origin)
+                samples = (samples)*(-directions[np.newaxis,:])+origin-500#update sample directions with config directions
+                
+            sampler = rw.create_sampler(gp_r, origin, real_lb, ub_samples,
                         sigma=params_sampling['sigma'])
             stopper = multiprocessing.Value('i', 0)
             listener, sender = multiprocessing.Pipe(duplex=False)
@@ -326,9 +349,20 @@ def do_random_meas(num_active_gates, tester, params_all,  gp_r, gpc_dict, do_ext
         # Extra measurement
         extra = meas_each_axis
         if found and do_extra_meas is not None:
-            extra += do_extra_meas(vols_pinchoff, th_score)
+            
+            check_results = do_extra_meas(vols_pinchoff, th_score)
+            extra.insert(0,check_results)
+            if len(check_results) == inv_max:
+                if check_results[-1][0]:
+            
+                    print("signal found")
+                    break
+            
+            
         extra_meas_all.append(extra)
         t3 = time.time() - t
+        
+            
 
         # Stop sampling
         if sampling_on:
@@ -369,8 +403,10 @@ def do_random_meas(num_active_gates, tester, params_all,  gp_r, gpc_dict, do_ext
         if params_gpr['on'] and len(r_all) >= params_gpr['min_num_data']:
             # Choose data for gp_r
             points_poff = points_extended[poff_extended]
-            inside = np.all(points_poff < origin, axis=1)
+            inside = get_between(origin,bounds,points_poff)
             u_all_gp, r_all_gp = util.ur_from_vols_origin(points_poff[inside], origin, returntype='array')
+            
+            #print(points_poff)
 
             gp_r.create_model(u_all_gp, r_all_gp[:,np.newaxis], (tester.d_r/2)**2, noise_prior='fixed')
             gp_availble = True
@@ -381,8 +417,10 @@ def do_random_meas(num_active_gates, tester, params_all,  gp_r, gpc_dict, do_ext
         if gp_availble and samples is not None:
             samples = rw.project_points_to_inside(samples, gp_r, origin, factor=0.99)
             samples_outside = np.logical_or(np.any(samples>ub_samples, axis=1), 
-                                            np.any(samples<lb_box, axis=1)) # Invalid samples
-            samples[samples_outside] = ub_samples - 1. # Invalid samples -> close to ub
+                                            np.any(samples<real_lb, axis=1)) # Invalid samples
+            
+            samples[samples_outside] = origin + directions # Invalid samples -> close to ub
+            #print(samples)
 
         print('The number of collected samples: ', len(r_all))
 
@@ -390,14 +428,27 @@ def do_random_meas(num_active_gates, tester, params_all,  gp_r, gpc_dict, do_ext
         if params_gpc['on'] and len(r_all) >= params_gpc['min_num_data']:
             # Data preparation
             n = num_active_gates # short notation
-            pks_all = np.array([len(ext[3+n]) >= 1 if len(ext)>=4+n else False for ext in extra_meas_all])
-            lowres_score = np.array([ext[8+n] if len(ext)>=9+n else 0.0 for ext in extra_meas_all])
+            
+            pks_all = []
+            lowres_score = []
+            for ext in extra_meas_all:
+                if len(ext)>n:
+                    pks_all += [ext[0][0][0]]
+        
+                    if len(ext[0])>1:
+                        lowres_score += [ext[0][1][0]]
+                    else:
+                        lowres_score += [0.0]
+                else:
+                    pks_all += [False]
+                    lowres_score += [0.0]
+            
             th_score = np.maximum(th_score, np.quantile(lowres_score, params_cond_meas['quantile']))
             
             #print(poff_extended[:len(pks_all)])
             print('peaks and lowres scores')
             print(pks_all)
-            print(lowres_score)
+            print(th_score,lowres_score)
 
             # Update GPC
             update_gpc(gpc_dict, points_extended, poff_extended, pks_all, lowres_score)
@@ -413,7 +464,7 @@ def do_random_meas(num_active_gates, tester, params_all,  gp_r, gpc_dict, do_ext
 
                 if point_selected is not None:
                     # Move the point to the safe bound, it is not going to happen, but just for safety
-                    point_selected = np.maximum(point_selected, lb_box+1.)
+                    point_selected = np.maximum(point_selected, real_lb+1.)
 
             else:
                 point_selected = None
@@ -448,6 +499,16 @@ def get_current_domain(jump,measure,origin,bound):
     maxc = measure()
     
     return maxc, minc
+
+
+def get_between(origin,bound,points):
+    
+    ub = np.maximum(origin,bound)
+    lb = np.minimum(origin,bound)
+    
+    inside = np.all(np.logical_and(points < ub,points > lb), axis=1)
+    
+    return inside
 
 if __name__ == '__main__':
     main()
