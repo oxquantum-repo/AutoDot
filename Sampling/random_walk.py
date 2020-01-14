@@ -3,7 +3,7 @@ import multiprocessing
 import time
 import numpy as np
 from collections import deque
-from BO_common import lhs_hypersphere, random_hypersphere, random_hypercube
+from Sampling.BO_common import lhs_hypersphere, random_hypersphere, random_hypercube
 
 class Gaussian_proposal_move(object):
     def __init__(self, cov=1.0E-2):

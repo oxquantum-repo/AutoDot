@@ -1,6 +1,6 @@
 import time
 import numpy as np
-import gp.util
+import Sampling.gp.util
 
 def L2_norm(vector):
     return np.sqrt(np.sum(np.square(vector)))
@@ -53,10 +53,11 @@ def adjust_window(a, b, lb, ub):
     return a, b
 
 class Tester(object):
-    def __init__(self, pygor, lb, ub, detector_pinchoff, d_r=5, len_after_pinchoff=200, channel=0, logging=False, detector_conducting=None, set_big_jump=None, set_small_jump=None):
-        self.pygor = pygor # connection
-        self.lb = np.array(lb) # lower bound
-        self.ub = np.array(ub) # upper bound
+    def __init__(self, jump, measure, real_lb, real_ub, detector_pinchoff, d_r=5, len_after_pinchoff=200, channel=0, logging=False, detector_conducting=None, set_big_jump=None, set_small_jump=None):
+        self.jump = jump # connection
+        self.measure = measure
+        self.lb = np.array(real_lb) # lower bound
+        self.ub = np.array(real_ub) # upper bound
         self.d_r = d_r # step size (default)
         self.detector_pinchoff = detector_pinchoff
         self.len_after_pinchoff = len_after_pinchoff
@@ -145,16 +146,16 @@ class Tester(object):
                 # big jump expected, swith on the big jump mode
                 if self.set_big_jump is not None:
                     self.set_big_jump()
-                self.pygor.set_params(voltages.tolist()) # set voltages for measurement
+                self.jump(voltages.tolist()) # set voltages for measurement
                 # switch off the big jump mode
                 if self.set_small_jump is not None:
                     self.set_small_jump()
                 first_iter = False
                 t_firstjump = time.time() - t
             else:
-                self.pygor.set_params(voltages.tolist()) # set voltages for measurement
+                self.jump(voltages.tolist()) # set voltages for measurement
 
-            current = self.pygor.do0d()[self.channel][0] # current measurement
+            current = self.measure() # current measurement
             voltages_all.append(voltages.copy()) # location of the measurement
             measurement_all.append(current)
             found_idx = detector(np.array(measurement_all))

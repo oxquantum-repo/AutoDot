@@ -8,7 +8,7 @@ import sys
 import json
 from tuning_gpc_main import main
 from Investigation.Investigation_factory import Investigation_stage
-
+import time
 
 def tune_with_pygor_from_file(config_file):
     
@@ -42,7 +42,7 @@ def tune_with_pygor_from_file(config_file):
             return params
     else:
         def jump(params,plungers=False):
-            
+            #print(params)
             if plungers:
                 labels = plunger_gates
             else:
@@ -50,9 +50,12 @@ def tune_with_pygor_from_file(config_file):
             pygor.setvals(labels,params)
             return params
     def measure():
-        return pygor.do0d()[chan_no][0]
+        cvl = pygor.do0d()[chan_no][0]
+        return cvl
     def check():
         return pygor.getvals(plunger_gates)
+    
+    assert len(gates) == len(configs['general']['origin'])
         
         
     investigation_stage = Investigation_stage(jump,measure,check,configs['investigation'])
@@ -69,9 +72,8 @@ def tune_from_file(jump,measure,check,config_file):
 def tune(jump,measure,investigation_stage,configs):
     configs['jump'] = jump
     configs['measure'] = measure
+    configs['investigation_stage_class'] = investigation_stage
     main(configs)
-    
-    
     
     
         
