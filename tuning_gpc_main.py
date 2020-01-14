@@ -7,14 +7,10 @@ mkl.set_num_threads(8)
 
 import numpy as np
 
-import matplotlib
-matplotlib.use("SVG")
-
 import util
 from test_common import Tester
 from BO_common import random_hypersphere
 from GPy_wrapper import GPyWrapper_Classifier as GPC
-import Sampling.gp.GP_util
 
 import config
 import config_model
