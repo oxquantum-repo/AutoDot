@@ -8,7 +8,6 @@ import sys
 import json
 from tuning_gpc_main import main
 from Investigation.Investigation_factory import Investigation_stage
-import time
 
 def tune_with_pygor_from_file(config_file):
     

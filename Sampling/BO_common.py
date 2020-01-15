@@ -234,8 +234,8 @@ def uniform_to_hypersphere(samples):
 
 def random_hypersphere(dim, num_samples):
     samples = np.random.uniform(size=(num_samples,dim))
+    #return (-directions[np.newaxis,:])*uniform_to_hypersphere(samples)
     return uniform_to_hypersphere(samples)
-
 def lhs_hypersphere(dim, num_samples):
     samples = sample_lhs_basic(dim, num_samples) # could be confusing with param. of np.random.uniform
     return uniform_to_hypersphere(samples)

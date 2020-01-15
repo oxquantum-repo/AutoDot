@@ -60,14 +60,13 @@ class TesterCross(object):
         return cross
 
 class TesterInside(object):
-    def __init__(self, gp=None, origin=None):
+    def __init__(self, gp=None, origin=None, directions=None):
         self.gp = gp
         self.origin = origin
-
+        self.directions = directions
     def __call__(self, z):
         u, r = ur_from_v(z, self.origin)
         r_surf, _ = self.gp.predict_f(u)
-
         return r < r_surf[:,0]
 
 class TesterBoundary(object):
@@ -130,6 +129,8 @@ class MH_MCMC_Hypersurface(multiprocessing.Process):
         if not isinstance(self.z, np.ndarray): raise ValueError('Incompatible sample shape')
         if self.z.ndim != 2: raise ValueError('samples should be 2-dimensional array')
         inside = self.tester_inside(self.z) # test whether all points are inside of the surface
+        
+        #print(self.z,inside)
         if not np.all(inside):
             raise ValueError('At least one of initial points is outside of the surface.')
 
