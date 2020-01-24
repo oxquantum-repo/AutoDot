@@ -68,7 +68,7 @@ class TesterInside(object):
         u, r = ur_from_v(z, self.origin)
         r_surf, _ = self.gp.predict(u)
 
-        return r < r_surf[:,0]
+        return r < np.maximum( r_surf[:,0], 0.0)
 
 class TesterBoundary(object):
     def __init__(self, lb, ub, conditions=tuple()):
