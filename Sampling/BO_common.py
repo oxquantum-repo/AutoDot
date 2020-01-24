@@ -253,10 +253,11 @@ def random_hypercube(point_lb, point_ub, num_samples):
     offset = point_lb
     samples = np.random.uniform(size=(num_samples,ndim))*interval[np.newaxis,:] + offset
     #print(samples)
+    return samples
 
     # convert samples to unit vectors
-    u_samples = (samples-point_ub[np.newaxis,:])/np.sqrt(np.sum(np.square(samples),axis=1,keepdims=True)) # length to 1, direction to negative side
-    return u_samples
+    #u_samples = (samples-point_ub[np.newaxis,:])/np.sqrt(np.sum(np.square(samples),axis=1,keepdims=True)) # length to 1, direction to negative side
+    #return u_samples
 
 # for test lhd
 def main():
