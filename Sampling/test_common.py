@@ -82,7 +82,7 @@ class Tester(object):
             if len(origin) != len(unit_vector):
                 raise ValueError('Wrong shape of origin.')
 
-        voltages_all, measurement_all, pinchoff_idx, t_firstjump = self.measure_until_poff(origin, unit_vector, r_est, d_r=d_r)
+        voltages_all, measurement_all, pinchoff_idx, t_firstjump = self.measure_until_poff(np.array(origin), unit_vector, r_est, d_r=d_r)
         if self.logging:
             self.logger.append({'vols':voltages_all, 'val':measurement_all, 'pinchoff_idx': pinchoff_idx})
 

@@ -22,6 +22,8 @@ class Investigation_stage():
         
         self.pygor = pygor
         
+        self.cond=list(range(1,1+self.inv_max))
+        
         
     def configure_investigation_sequence(self,configs):
         seq_keys = configs["measurement_seq"]
@@ -45,6 +47,7 @@ class Investigation_stage():
         kwags['pygor'] = self.pygor
         anchor_vals = self.check()
         
+        results_full = {}
         results = []
         
         for i in range(self.inv_max):
@@ -63,7 +66,10 @@ class Investigation_stage():
             if not continue_on:
                 break
             
-        return results
+        results_full['extra_measure'] = results
+        results_full['conditional_idx'] = self.cond[i]
+            
+        return results_full
         
         
             

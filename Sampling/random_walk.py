@@ -66,7 +66,7 @@ class TesterInside(object):
 
     def __call__(self, z):
         u, r = ur_from_v(z, self.origin)
-        r_surf, _ = self.gp.predict_f(u)
+        r_surf, _ = self.gp.predict(u)
 
         return r < r_surf[:,0]
 
@@ -125,6 +125,8 @@ class MH_MCMC_Hypersurface(multiprocessing.Process):
             self.history_all.append(self.z)
         else:
             self.history_all = None
+            
+        print(self.z)
 
         # Check whether the samples are valid
         if not isinstance(self.z, np.ndarray): raise ValueError('Incompatible sample shape')
@@ -221,7 +223,7 @@ def random_points_inside_(ndim, num_samples, gp_r, origin, factor=0.5):
 
 def random_points_inside(ndim, num_samples, gp_r, origin, lb, ub):
     samples = random_hypercube(lb, ub, num_samples)
-    if gp_r.model is not None:
+    if gp_r.gp.model is not None:
         samples = project_points_to_inside(samples, gp_r, origin, 0.99)
 
     return samples
@@ -240,7 +242,7 @@ def pick_from_boundary_points(boundary_points, pick_last=True):
 
 def project_points_to_inside(v, gp, origin, factor=0.5):
     u, r = ur_from_v(v, origin)
-    r_surf, _ = gp.predict_f(u)
+    r_surf, _ = gp.predict(u)
     idxs_outside = np.nonzero(r_surf[:,0] < r)[0]
     if idxs_outside.size > 0:
         v[idxs_outside] = u[idxs_outside]*factor*r_surf[idxs_outside] + origin
