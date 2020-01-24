@@ -245,7 +245,7 @@ def project_points_to_inside(v, gp, origin, factor=0.5):
     r_surf, _ = gp.predict(u)
     idxs_outside = np.nonzero(r_surf[:,0] < r)[0]
     if idxs_outside.size > 0:
-        v[idxs_outside] = u[idxs_outside]*factor*r_surf[idxs_outside] + origin
+        v[idxs_outside] = u[idxs_outside]*factor*np.maximum(r_surf[idxs_outside],0.0) + origin
     return v
 
 def project_points_to_boundary(v, gp, origin):
