@@ -1,67 +1,14 @@
 import multiprocessing
 from pathlib import Path
-import pickle
-from multiprocessing import Pool
-
+from dict_util import Tuning_dict
 import numpy as np
-
-import warnings
-
 
 import Sampling.gp.util as util
 from Sampling.test_common import Tester
 from Sampling.BO_common import random_hypersphere
-from Sampling.gp.GPy_wrapper import GPyWrapper_Classifier as GPC
-import Sampling.gp.GP_util as GP_util
+from Sampling.gp.GP_models import GPC_heiracical, GP_base
 
 import Sampling.random_walk as rw
-
-
-
-
-class Tuning_dict(dict):
-    def __init__(self,*args,**kwargs):
-        super(Tuning_dict,self).__init__(*args,**kwargs)
-        
-    def get(self,*var):
-        return tuple(self[k] for k in var)
-    
-    def getd(self,*var):
-        return dict(tuple((k,self[k]) for k in var))
-    
-    def getl(self,*var):
-        cand = [self[k] for k in var]
-        return tuple(c[-1] if isinstance(c,list) else c for c in cand)
- 
-    
-    def app(self,**kwargs):
-        dict_return = {}
-        for key,item in kwargs.items():
-            try:
-                self[key].append(item)
-                dict_return[key] = self[key]
-            except AttributeError:
-                raise warnings.warn("%s is not a list")
-        return dict_return
-    
-    def add(self,**kwargs):
-        for key,item in kwargs.items():
-            self[key] = item
-            
-    def save(self,file_pth=None):
-        if file_pth is None:
-            file_pth = self['save_dir']+self['file_name']
-        with open(file_pth,'wb') as h:
-            pickle.dump(self,h)
-            
-            
-            
-
-                
-                
-        
-
-
 
 
 
@@ -125,95 +72,6 @@ class Base_Sampler(object):
         detector_conducting = util.ConductingDetectorThreshold(threshold_high)
         self.tester = Tester(*self.t.get('jump', 'measure', 'real_lb', 'real_ub'), detector_pinchoff, d_r=configs['d_r'], len_after_pinchoff=configs['len_after_poff'], logging=True, detector_conducting=detector_conducting)
         
-        
-        
-        
-class GP_base():
-    def __init__(self,n,bound,origin,configs,GP_type=False):
-        
-        self.GP_type = GP_type
-        self.n,self.bound,self.origin=n,np.array(bound),np.array(origin)
-        
-        self.c = Tuning_dict(configs)
-        self.create_gp()
-        
-        
-    def create_gp(self):
-        l_p_mean, l_p_var = self.c.get('length_prior_mean','length_prior_var')
-        n = self.n
-        l_prior_mean = l_p_mean * np.ones(n)
-        l_prior_var = (l_p_var**2) * np.ones(n)
-        
-        if self.GP_type == False:
-            r_min, var_p_m_div = self.c.get('r_min','var_prior_mean_divisor')
-            r_min, r_max =  r_min, np.linalg.norm(self.bound-self.origin)
-            v_prior_mean = ((r_max-r_min)/var_p_m_div)**2
-            self.gp = GP_util.create_GP(self.n, *self.c.get('kernal'), v_prior_mean, l_prior_mean, (r_max-r_min)/2.0)
-            GP_util.set_GP_prior(self.gp, l_prior_mean, l_prior_var, None, None) # do not set prior for kernel var
-            GP_util.fix_hyperparams(self.gp, False, True)
-        else:
-            v_prior_mean, v_prior_var =  self.c.get('var_prior_mean','var_prior_var')
-            v_prior_var = v_prior_var**2
-            self.gp = GP_util.create_GP(self.n, *self.c.get('kernal'), lengthscale=l_prior_mean, const_kernel=True, GP=GPC)
-            GP_util.set_GP_prior(self.gp, l_prior_mean, l_prior_var, v_prior_mean, v_prior_var)
-            
-            
-    def train(self,x,y,*args,**kwargs):
-        self.gp.create_model(x, y, *args, **kwargs)
-        
-    def optimsie(self):
-        if self.GP_type == False:
-            self.gp.optimize(self.c.get('restarts'),parallel=True)
-        else:
-            self.gp.optimize()
-        #inside = get_between(self.origin,self.bounds,points_poff)
-        #u_all_gp, r_all_gp = util.ur_from_vols_origin(points_poff[inside], self.origin, returntype='array')
-        #self.gp.create_model(u_all_gp, r_all_gp[:,np.newaxis], (self.tester.d_r/2)**2, noise_prior='fixed')
-        
-    def predict(self,x):
-        if self.GP_type == False:
-            return self.gp.predict_f(x)
-        else:
-            return self.gp.predict_prob(x)
-        
-        
-        
-class GPC_heiracical():
-    def __init__(self,n,bound,origin,configs):
-        
-        self.gp = []
-        for config in configs:
-            self.gp += [GP_base(n,bound,origin,config,GP_type=True)]
-    def train(self,x,y_cond):
-        for i,gp in enumerate(self.gp):
-            gp.train(x,y_cond[:,i])
-            
-    def optimise(self,parallel=False):
-        
-        if parallel:
-            def f(i):
-                self.gp[i].optimise()
-            #pool = multiprocessing.Pool(multiprocessing.cpu_count())
-            with Pool(processes=multiprocessing.cpu_count()) as pool:
-                pool.map(f, range(len(self.gp)))
-                
-            #results
-        else:
-            [gp.optimsie() for gp in self.gp]
-            
-    def predict(self,x):
-        results = [gp.predict(x) for gp in self.gp]
-        return results
-    
-    
-    def predict_comb_prob(self,x):
-        probs = self.predict(x)
-        total_prob = np.prod(probs, axis=0)
-        return total_prob
-        
-        
-        
-
 
 
 
@@ -227,9 +85,7 @@ class Paper_sampler(Base_Sampler):
                    vols_poff=[],detected=[],vols_poff_axes=[],poff=[],
                    cand_v=[],all_v=[],vols_pinchoff=[],d_vec=[],poff_vec=[],meas_each_axis=[],vols_each_axis=[],extra_measure=[],
                    vols_pinchoff_axes=[],vols_detected_axes=[],changed_origin=[])
-        
-        
-        
+
         
         self.t.add(d_r=self.t['detector']['d_r'])#bodge
         
@@ -247,18 +103,6 @@ class Paper_sampler(Base_Sampler):
         
         self.t.add(**configs['gpr'],**configs['gpc'],**configs['sampling'],**configs['pruning'])
     
-
-    
-   
-    def project_samples_inside(self):
-        self.samples = rw.project_points_to_inside(self.samples, self.gp_r, self.origin, factor=0.99)
-        samples_outside = np.logical_or(np.any(self.samples>self.real_ub, axis=1), 
-                                            np.any(self.samples<self.real_lb, axis=1)) # Invalid samples
-            
-        self.samples[samples_outside] = self.origin + self.direction
-    
-        
-        
         
     def do_iter2(self):
         
@@ -301,7 +145,7 @@ class Paper_sampler(Base_Sampler):
         
         #if self.iter>self.start_gpr and self.gpr_on and self.samples is not None:
         #    self.project_samples_inside()
-            
+        self.t.save(*self.t['track'])
         self.t['iter'] += 1
         
         
@@ -406,26 +250,6 @@ def train_hgpc(model,X,Y_count,mapping,optimise=False):
     
     model.optimise()
         
-        
-    
-    
-        
-    def draw_point(self,point_selected):
-        
-        
-        if point_selected is not None:
-                v = point_selected
-                v_origin = v - self.origin
-                u = v_origin / np.sqrt(np.sum(np.square(v_origin))) # voltage -> unit vector
-        elif len(self.boundary_points) != 0:
-                v = rw.pick_from_boundary_points(self.boundary_points) 
-                v_origin = v - self.origin
-                u = v_origin / np.sqrt(np.sum(np.square(v_origin))) # voltage -> unit vector
-        else:
-                print('WARNING: no boundary point is sampled')
-                u = random_angle_directions(self.num_active_gates, 1, self.direction)[0]
-                
-        return u
     
     
 def unpack(key,list_of_dict):
