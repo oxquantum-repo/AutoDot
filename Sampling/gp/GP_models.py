@@ -68,6 +68,7 @@ class GPC_heiracical():
             self.gp += [GP_base(n,bound,origin,config,GP_type=True)]
     def train(self,x,y_cond):
         for i,gp in enumerate(self.gp):
+            print("training models")
             gp.train(x,y_cond[:,i])
             
     def optimise(self,parallel=False):

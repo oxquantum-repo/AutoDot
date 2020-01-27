@@ -80,6 +80,7 @@ class Paper_sampler(Base_Sampler):
     def __init__(self,configs):
         super(Paper_sampler, self).__init__(configs)
         
+        self.sampler_hook = None #bodge
         
         self.t.add(samples=None,point_selected=None,boundary_points=[],
                    vols_poff=[],detected=[],vols_poff_axes=[],poff=[],
@@ -114,11 +115,11 @@ class Paper_sampler(Base_Sampler):
         do_gpr, do_gpc, do_pruning = (i>self.t['gpc_start']) and self.t['gpc_on'], (i>self.t['gpr_start']) and self.t['gpr_on'], (self.t['pruning_stop']<=i) and self.t['pruning_on']
         do_gpr_p1, do_gpc_p1 = (i-1>self.t['gpr_start']) and self.t['gpr_on'], (i-1>self.t['gpc_start']) and self.t['gpc_on']
         
-        print(do_optim,do_gpr,do_gpc,do_pruning)
+        #print(do_optim,do_gpr,do_gpc,do_pruning)
         #pick a uvec and start sampling
         u, r_est = select_point(self.gpr, self.gpc, *self.t.get('origin', 'cand_v', 'all_v', 'directions'), do_gpr_p1, do_gpc_p1)
-        sampler_hook = start_sampling(self.gpr, *self.t.get('samples', 'origin', 'real_ub', 'real_lb',
-                                             'directions', 'n_part', 'sigma', 'max_steps')) if do_gpr_p1 else None
+        self.sampler_hook = start_sampling(self.gpr, *self.t.get('samples', 'origin', 'real_ub', 'real_lb',
+                                             'directions', 'n_part', 'sigma', 'max_steps'),sampler_hook=self.sampler_hook) if do_gpr_p1 else None
     
             
         #observe true r
@@ -131,21 +132,21 @@ class Paper_sampler(Base_Sampler):
         em_results = self.t['do_extra_meas'](vols_pinchoff, th_score) if found else {'conditional_idx':0}
         self.t.app(extra_measure=em_results)
         
-        if sampler_hook is not None: self.t.add(**stop_sampling(*sampler_hook)) 
+        if self.sampler_hook is not None: self.t.add(**stop_sampling(*self.sampler_hook)) 
             
         if do_pruning: self.t.add(**util.compute_hardbound(self.t.getl('poff_vec', 'found', 'vols_pinchoff', 'step_back', 'origin', 'directions', 'bound')))
             
 
         X_train_all, X_train, _ = util.merge_data(*self.t.get('vols_pinchoff', 'detected', 'vols_pinchoff_axes', 'vols_detected_axes'))           
         
-        print(self.t['extra_measure'])
+        #print(self.t['extra_measure'])
         
         if do_gpr: train_gpr(self.gpr,*self.t.get('origin', 'bound', 'd_r'), X_train, optimise = do_optim or self.t['changed_origin'])
         if do_gpc: train_hgpc(self.gpc, X_train, unpack('conditional_idx',self.t['extra_measure']), self.t['gpc_list'], optimise = do_optim)
         
         #if self.iter>self.start_gpr and self.gpr_on and self.samples is not None:
         #    self.project_samples_inside()
-        self.t.save(*self.t['track'])
+        self.t.save(track=self.t['track'])
         self.t['iter'] += 1
         
         
@@ -179,22 +180,24 @@ def select_point(hypersurface, selection_model, origin, cand_v, all_v, direction
 
 
 
-def start_sampling(hypersurface,samples,origin,real_ub,real_lb,directions,n_part,sigma,max_steps):
-    """selects a point to investigate using thompson sampling, uniform sampling or random angles
-    depending on use_selection flag or is no cand_v are present
+def start_sampling(hypersurface,samples,origin,real_ub,real_lb,directions,n_part,sigma,max_steps,sampler_hook=None):
+    """starts the sampling using multiprocessing while measurements are made on the device
     Args:
         hypersurface:  model of the hypersurface
-        selection_model: model of probability of observing desirable features
+        samples: (list) samples to use for the brownian motion
         origin: (list) current origin of search
-        can_v: (list) containing all candidate points found on modeled hypersurface
-        all_v: (list) containing all observed points real hypersurface
+        real_ub: (list) upper bound of search space
+        real_lb: (list) lower bound of search space
         directions: (list) multiplyers specifying directions of search
     Returns:
         unit vector
     """
+    print("START")
+    if sampler_hook is not None: sampler, stopper, listener = sampler_hook
     directions, origin = np.array(directions), np.array(origin)
     if samples is None:
         samples = rw.random_points_inside(len(origin), n_part, hypersurface, origin, real_lb, real_ub)
+        #print("S: ", samples,"O: ",origin)
         samples = (samples)*(-directions[np.newaxis,:])+origin#update sample directions with config directions
     sampler = rw.create_sampler(hypersurface, origin, real_lb, real_ub, sigma=sigma)
     stopper = multiprocessing.Value('i', 0)
@@ -220,6 +223,7 @@ def stop_sampling(sampler,stopper,listener):
     stopper.value = 1
     counter, samples, boundary_points = listener.recv()
     sampler.join()
+    print("STOP")
     return {'samples':samples,'boundary_points':boundary_points}
 
 

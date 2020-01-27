@@ -36,8 +36,11 @@ class Tuning_dict(dict):
         for key,item in kwargs.items():
             self[key] = item
             
-    def save(self,file_pth=None):
+    def save(self,track = None, file_pth=None):
         if file_pth is None:
             file_pth = self['save_dir']+self['file_name']
+            
+        save_dict = self.getd(*track) if track is not None else self
+
         with open(file_pth,'wb') as h:
-            pickle.dump(self,h)
+            pickle.dump(save_dict,h)
