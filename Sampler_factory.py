@@ -238,7 +238,7 @@ def train_gpr(model,origin,bounds,d_r,X,Y=None,optimise=False):
         
         
     if optimise:
-        model.optimise(num_restarts=5, opt_messages=False, print_result=True)
+        model.optimise(opt_messages=False, print_result=True)
         
         
 def train_hgpc(model,X,Y_count,mapping,optimise=False):
