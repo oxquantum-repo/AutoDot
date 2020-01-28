@@ -243,6 +243,17 @@ def lhs_hypersphere(dim, num_samples):
 def random_hypercube(point_lb, point_ub, num_samples):
     assert len(point_lb) == len(point_ub)
     ndim = len(point_lb)
+
+    interval = point_ub - point_lb
+    offset = point_lb
+    samples = np.random.uniform(size=(num_samples,ndim))*interval[np.newaxis,:] + offset
+    #print(samples)
+    return samples
+
+'''
+def random_hypercube(point_lb, point_ub, num_samples):
+    assert len(point_lb) == len(point_ub)
+    ndim = len(point_lb)
     # choose a face
     face_idx = np.random.randint(ndim) # coordinate of this index is point_lb[face_idx]
     face_lb = np.append(point_lb[:face_idx], point_lb[face_idx+1:])
@@ -258,6 +269,7 @@ def random_hypercube(point_lb, point_ub, num_samples):
     # convert samples to unit vectors
     #u_samples = (samples-point_ub[np.newaxis,:])/np.sqrt(np.sum(np.square(samples),axis=1,keepdims=True)) # length to 1, direction to negative side
     #return u_samples
+'''
 
 # for test lhd
 def main():

@@ -198,7 +198,8 @@ def start_sampling(hypersurface,samples,origin,real_ub,real_lb,directions,n_part
     if samples is None:
         samples = rw.random_points_inside(len(origin), n_part, hypersurface, origin, real_lb, real_ub)
         #print("S: ", samples,"O: ",origin)
-        samples = (samples)*(-directions[np.newaxis,:])+origin#update sample directions with config directions
+        #samples = (samples)*(-directions[np.newaxis,:])+origin#update sample directions with config directions
+        print(samples)
     sampler = rw.create_sampler(hypersurface, origin, real_lb, real_ub, sigma=sigma)
     stopper = multiprocessing.Value('i', 0)
     listener, sender = multiprocessing.Pipe(duplex=False)
