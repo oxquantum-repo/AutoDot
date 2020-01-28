@@ -106,25 +106,22 @@ class Paper_sampler(Base_Sampler):
         self.t.add(**configs['gpr'],**configs['gpc'],**configs['sampling'],**configs['pruning'])
     
         
-    def do_iter2(self):
+    def do_iter(self):
         
         i = self.t['iter']
         
         th_score=0.01
         
-
         do_optim = (i%11==0) and (i > 0)
         do_gpr, do_gpc, do_pruning = (i>self.t['gpc_start']) and self.t['gpc_on'], (i>self.t['gpr_start']) and self.t['gpr_on'], (self.t['pruning_stop']<=i) and self.t['pruning_on']
         do_gpr_p1, do_gpc_p1 = (i-1>self.t['gpr_start']) and self.t['gpr_on'], (i-1>self.t['gpc_start']) and self.t['gpc_on']
         print("GPR:",do_gpr,"GPC:",do_gpc,"prune:",do_pruning,"GPR1:",do_gpr_p1,"GPC1:",do_gpc_p1,"Optim:",do_optim)
-        #print(do_optim,do_gpr,do_gpc,do_pruning)
         #pick a uvec and start sampling
         u, r_est = select_point(self.gpr, self.gpc, *self.t.get('origin', 'cand_v', 'all_v', 'directions'), do_gpr_p1, do_gpc_p1)
         self.sampler_hook = start_sampling(self.gpr, *self.t.get('samples', 'origin', 'real_ub', 'real_lb',
                                              'directions', 'n_part', 'sigma', 'max_steps'),sampler_hook=self.sampler_hook) if do_gpr_p1 else None
     
-            
-        #observe true r
+    
         r, vols_pinchoff, found, t_firstjump = self.tester.get_r(u, origin=self.t['origin'], r_est=r_est)
         self.t.app(vols_pinchoff=vols_pinchoff, detected=found)
         
@@ -137,23 +134,17 @@ class Paper_sampler(Base_Sampler):
         if self.sampler_hook is not None: self.t.add(**stop_sampling(*self.sampler_hook)) 
             
         if do_pruning: self.t.add(**util.compute_hardbound(self.t.getl('poff_vec', 'found', 'vols_pinchoff', 'step_back', 'origin', 'directions', 'bound')))
-            
 
         X_train_all, X_train, _ = util.merge_data(*self.t.get('vols_pinchoff', 'detected', 'vols_pinchoff_axes', 'vols_detected_axes'))           
-        
-        #print(self.t['extra_measure'])
         
         if do_gpr: train_gpr(self.gpr,*self.t.get('origin', 'bound', 'd_r'), X_train, optimise = do_optim or self.t['changed_origin'])
         if do_gpc: train_hgpc(self.gpc, X_train, unpack('conditional_idx',self.t['extra_measure']), self.t['gpc_list'], optimise = do_optim)
         
-        #if self.iter>self.start_gpr and self.gpr_on and self.samples is not None:
-        #    self.project_samples_inside()
         if self.sampler_hook is not None and do_gpr:
             self.t.add(**project_samples_inside(self.gpr, *self.t.get('samples', 'origin', 'real_ub', 'real_lb')))
             
         self.t.save(track=self.t['track'])
         self.t['iter'] += 1
-        
         
 def select_point(hypersurface, selection_model, origin, cand_v, all_v, directions, use_selection=True, estimate_r=True):
     """selects a point to investigate using thompson sampling, uniform sampling or random angles

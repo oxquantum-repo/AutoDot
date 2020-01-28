@@ -75,7 +75,7 @@ def tune(jump,measure,investigation_stage,configs):
     ps = Paper_sampler(configs)
     for i in range(configs['general']['num_samples']):
         print(i)
-        ps.do_iter2()
+        ps.do_iter()
     
 if __name__ == '__main__':
    tune_with_pygor_from_file('tuning_config.json') 
