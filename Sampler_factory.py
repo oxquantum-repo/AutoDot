@@ -1,3 +1,4 @@
+import time
 import multiprocessing
 from pathlib import Path
 from dict_util import Tuning_dict
@@ -133,7 +134,9 @@ class Paper_sampler(Base_Sampler):
         em_results = self.t['do_extra_meas'](vols_pinchoff, th_score) if found else {'conditional_idx':0}
         self.t.app(extra_measure=em_results)
         
+        print('DEBUG: before stop_sampling')
         if self.sampler_hook is not None: self.t.add(**stop_sampling(*self.sampler_hook)) 
+        print('DEBUG: after stop_sampling')
             
         if do_pruning: self.t.add(**util.compute_hardbound(self.t.getl('poff_vec', 'found', 'vols_pinchoff', 'step_back', 'origin', 'directions', 'bound')))
             
@@ -204,8 +207,12 @@ def start_sampling(hypersurface,samples,origin,real_ub,real_lb,directions,n_part
     sampler = rw.create_sampler(hypersurface, origin, real_lb, real_ub, sigma=sigma)
     stopper = multiprocessing.Value('i', 0)
     listener, sender = multiprocessing.Pipe(duplex=False)
+    print("DEBUG: before reset")
     sampler.reset(samples, max_steps=max_steps,stopper=stopper, result_sender=sender)
+    print("DEBUG: after reset")
     sampler.start()
+    time.sleep(1)
+    print("DEBUG: after start")
         
     return sampler, stopper, listener
 
@@ -222,6 +229,7 @@ def stop_sampling(sampler,stopper,listener):
     Returns:
         unit vector
     """
+    print('DEBUG: In stop_sampling')
     stopper.value = 1
     counter, samples, boundary_points = listener.recv()
     sampler.join()

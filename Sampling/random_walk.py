@@ -187,8 +187,9 @@ class MH_MCMC_Hypersurface(multiprocessing.Process):
     def get_result(self):
         return self.counter, self.z, list(self.queue)
 
-    def __call__(self, z=None, L_current = None, max_steps = 1000):
-        self.reset(z, L_current, max_steps=max_steps)
+    #def __call__(self, z=None, L_current = None, max_steps = 1000):
+    #    self.reset(z, L_current, max_steps=max_steps)
+    def __call__(self):
         for i in range(self.max_steps):
             self.single_step()
             self.counter += 1

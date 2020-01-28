@@ -77,6 +77,7 @@ def tune(jump,measure,investigation_stage,configs):
         print(i)
         ps.do_iter2()
     
-    
-    
+if __name__ == '__main__':
+   tune_with_pygor_from_file('tuning_config.json') 
+        
         
