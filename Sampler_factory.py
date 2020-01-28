@@ -114,7 +114,7 @@ class Paper_sampler(Base_Sampler):
         do_optim = (i%11==11) and (i > 0)
         do_gpr, do_gpc, do_pruning = (i>self.t['gpc_start']) and self.t['gpc_on'], (i>self.t['gpr_start']) and self.t['gpr_on'], (self.t['pruning_stop']<=i) and self.t['pruning_on']
         do_gpr_p1, do_gpc_p1 = (i-1>self.t['gpr_start']) and self.t['gpr_on'], (i-1>self.t['gpc_start']) and self.t['gpc_on']
-        
+        print("GPR:",do_gpr,"GPC:",do_gpc,"prune:",do_pruning,"GPR1:",do_gpr_p1,"GPC1:",do_gpc_p1)
         #print(do_optim,do_gpr,do_gpc,do_pruning)
         #pick a uvec and start sampling
         u, r_est = select_point(self.gpr, self.gpc, *self.t.get('origin', 'cand_v', 'all_v', 'directions'), do_gpr_p1, do_gpc_p1)
@@ -237,7 +237,7 @@ def train_gpr(model,origin,bounds,d_r,X,Y=None,optimise=False):
         
         
     if optimise:
-        model.optimize(num_restarts=5, opt_messages=False, print_result=True)
+        model.optimise(num_restarts=5, opt_messages=False, print_result=True)
         
         
 def train_hgpc(model,X,Y_count,mapping,optimise=False):
@@ -252,7 +252,8 @@ def train_hgpc(model,X,Y_count,mapping,optimise=False):
 
     model.train(X, conditional_labels)
     
-    model.optimise()
+    if optimise:
+        model.optimise()
         
     
     

@@ -43,9 +43,9 @@ class GP_base():
     def train(self,x,y,*args,**kwargs):
         self.gp.create_model(x, y, *args, **kwargs)
         
-    def optimsie(self):
+    def optimise(self):
         if self.GP_type == False:
-            self.gp.optimize(self.c.get('restarts'),parallel=True)
+            self.gp.optimize(*self.c.get('restarts'),parallel=True)
         else:
             self.gp.optimize()
         #inside = get_between(self.origin,self.bounds,points_poff)
