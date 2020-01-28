@@ -134,9 +134,7 @@ class Paper_sampler(Base_Sampler):
         em_results = self.t['do_extra_meas'](vols_pinchoff, th_score) if found else {'conditional_idx':0}
         self.t.app(extra_measure=em_results)
         
-        print('DEBUG: before stop_sampling')
         if self.sampler_hook is not None: self.t.add(**stop_sampling(*self.sampler_hook)) 
-        print('DEBUG: after stop_sampling')
             
         if do_pruning: self.t.add(**util.compute_hardbound(self.t.getl('poff_vec', 'found', 'vols_pinchoff', 'step_back', 'origin', 'directions', 'bound')))
             
@@ -150,6 +148,9 @@ class Paper_sampler(Base_Sampler):
         
         #if self.iter>self.start_gpr and self.gpr_on and self.samples is not None:
         #    self.project_samples_inside()
+        if self.sampler_hook is not None and do_gpr:
+            self.t.add(**project_samples_inside(self.gpr, *self.t.get('samples', 'origin', 'real_ub', 'real_lb')))
+            
         self.t.save(track=self.t['track'])
         self.t['iter'] += 1
         
@@ -203,16 +204,12 @@ def start_sampling(hypersurface,samples,origin,real_ub,real_lb,directions,n_part
         samples = rw.random_points_inside(len(origin), n_part, hypersurface, origin, real_lb, real_ub)
         #print("S: ", samples,"O: ",origin)
         #samples = (samples)*(-directions[np.newaxis,:])+origin#update sample directions with config directions
-        print(samples)
     sampler = rw.create_sampler(hypersurface, origin, real_lb, real_ub, sigma=sigma)
     stopper = multiprocessing.Value('i', 0)
     listener, sender = multiprocessing.Pipe(duplex=False)
-    print("DEBUG: before reset")
     sampler.reset(samples, max_steps=max_steps,stopper=stopper, result_sender=sender)
-    print("DEBUG: after reset")
     sampler.start()
-    time.sleep(1)
-    print("DEBUG: after start")
+    #time.sleep(1)
         
     return sampler, stopper, listener
 
@@ -229,14 +226,20 @@ def stop_sampling(sampler,stopper,listener):
     Returns:
         unit vector
     """
-    print('DEBUG: In stop_sampling')
     stopper.value = 1
     counter, samples, boundary_points = listener.recv()
     sampler.join()
     print("STOP")
     return {'samples':samples,'boundary_points':boundary_points}
 
-
+def project_samples_inside(hypersurface, samples, origin, ub, lb):
+    samples = rw.project_points_to_inside(samples, hypersurface, origin, factor=0.99)
+    out_of_ub = samples>np.atleast_2d(ub)
+    samples[out_of_ub] = samples[out_of_ub] - 1.0
+    out_of_lb = samples<np.atleast_2d(lb)
+    samples[out_of_ub] = samples[out_of_lb] + 1.0
+    return {'samples':samples}
+    
 def train_gpr(model,origin,bounds,d_r,X,Y=None,optimise=False):
     
     origin, bounds = np.array(origin), np.array(bounds)
