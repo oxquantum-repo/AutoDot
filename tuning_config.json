@@ -69,6 +69,7 @@
 	},
 
     "gpr": {
+	"restarts": 5,
 	"factor_std": 2.0, 
 	"gpr_start": 10, 
 	"gpr_on": true,

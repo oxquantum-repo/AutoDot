@@ -82,7 +82,7 @@ class GPC_heiracical():
                 
             #results
         else:
-            [gp.optimsie() for gp in self.gp]
+            [gp.optimise() for gp in self.gp]
             
     def predict(self,x):
         results = [gp.predict(x) for gp in self.gp]
