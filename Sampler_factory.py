@@ -86,7 +86,7 @@ class Paper_sampler(Base_Sampler):
         self.t.add(samples=None,point_selected=None,boundary_points=[],
                    vols_poff=[],detected=[],vols_poff_axes=[],poff=[],
                    cand_v=[],all_v=[],vols_pinchoff=[],d_vec=[],poff_vec=[],meas_each_axis=[],vols_each_axis=[],extra_measure=[],
-                   vols_pinchoff_axes=[],vols_detected_axes=[],changed_origin=[])
+                   vols_pinchoff_axes=[],vols_detected_axes=[],changed_origin=[],conditional_idx=[],r_vals=[])
 
         
         self.t.add(d_r=self.t['detector']['d_r'])#bodge
@@ -112,39 +112,41 @@ class Paper_sampler(Base_Sampler):
         
         th_score=0.01
         
+        
         do_optim = (i%11==0) and (i > 0)
-        do_gpr, do_gpc, do_pruning = (i>self.t['gpc_start']) and self.t['gpc_on'], (i>self.t['gpr_start']) and self.t['gpr_on'], (self.t['pruning_stop']<=i) and self.t['pruning_on']
+        do_gpr, do_gpc, do_pruning = (i>self.t['gpc_start']) and self.t['gpc_on'], (i>self.t['gpr_start']) and self.t['gpr_on'], (self.t['pruning_stop']>i) and self.t['pruning_on']
         do_gpr_p1, do_gpc_p1 = (i-1>self.t['gpr_start']) and self.t['gpr_on'], (i-1>self.t['gpc_start']) and self.t['gpc_on']
         print("GPR:",do_gpr,"GPC:",do_gpc,"prune:",do_pruning,"GPR1:",do_gpr_p1,"GPC1:",do_gpc_p1,"Optim:",do_optim)
         #pick a uvec and start sampling
         u, r_est = select_point(self.gpr, self.gpc, *self.t.get('origin', 'cand_v', 'all_v', 'directions'), do_gpr_p1, do_gpc_p1)
         self.sampler_hook = start_sampling(self.gpr, *self.t.get('samples', 'origin', 'real_ub', 'real_lb',
                                              'directions', 'n_part', 'sigma', 'max_steps'),sampler_hook=self.sampler_hook) if do_gpr_p1 else None
-    
-    
+
+         
         r, vols_pinchoff, found, t_firstjump = self.tester.get_r(u, origin=self.t['origin'], r_est=r_est)
-        self.t.app(vols_pinchoff=vols_pinchoff, detected=found)
+        self.t.app(r_vals=r,vols_pinchoff=vols_pinchoff, detected=found)
         
-        prune_results = self.tester.measure_dvec(vols_pinchoff+(self.t['step_back']*self.t['directions'])) if do_pruning else [None]*4
+        prune_results = self.tester.measure_dvec(vols_pinchoff+(self.t['step_back']*np.array(self.t['directions']))) if do_pruning else [None]*4
         self.t.app(**dict(zip(('d_vec', 'poff_vec', 'meas_each_axis', 'vols_each_axis'),prune_results)))
-            
+        
         em_results = self.t['do_extra_meas'](vols_pinchoff, th_score) if found else {'conditional_idx':0}
-        self.t.app(extra_measure=em_results)
+        self.t.app(extra_measure=em_results), self.t.app(conditional_idx=em_results['conditional_idx'])
         
         if self.sampler_hook is not None: self.t.add(**stop_sampling(*self.sampler_hook)) 
-            
-        if do_pruning: self.t.add(**util.compute_hardbound(self.t.getl('poff_vec', 'found', 'vols_pinchoff', 'step_back', 'origin', 'directions', 'bound')))
-
+        
+        if do_pruning: self.t.add(**util.compute_hardbound(*self.t.getl('poff_vec', 'detected', 'vols_pinchoff'), *self.t.get('step_back', 'origin', 'bound')))
+        
         X_train_all, X_train, _ = util.merge_data(*self.t.get('vols_pinchoff', 'detected', 'vols_pinchoff_axes', 'vols_detected_axes'))           
         
         if do_gpr: train_gpr(self.gpr,*self.t.get('origin', 'bound', 'd_r'), X_train, optimise = do_optim or self.t['changed_origin'])
-        if do_gpc: train_hgpc(self.gpc, X_train, unpack('conditional_idx',self.t['extra_measure']), self.t['gpc_list'], optimise = do_optim)
+        if do_gpc: train_hgpc(self.gpc, self.t['vols_pinchoff'], unpack('conditional_idx',self.t['extra_measure']), self.t['gpc_list'], optimise = do_optim)
         
         if self.sampler_hook is not None and do_gpr:
             self.t.add(**project_samples_inside(self.gpr, *self.t.get('samples', 'origin', 'real_ub', 'real_lb')))
             
-        self.t.save(track=self.t['track'])
         self.t['iter'] += 1
+        self.t.save(track=self.t['track'])
+        return self.t.getd(*self.t['verbose'])
         
 def select_point(hypersurface, selection_model, origin, cand_v, all_v, directions, use_selection=True, estimate_r=True):
     """selects a point to investigate using thompson sampling, uniform sampling or random angles

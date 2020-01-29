@@ -63,13 +63,23 @@ class GP_base():
 class GPC_heiracical():
     def __init__(self,n,bound,origin,configs):
         
+        self.built = [False]*len(configs)
+        
         self.gp = []
         for config in configs:
             self.gp += [GP_base(n,bound,origin,config,GP_type=True)]
     def train(self,x,y_cond):
+        x = np.array(x)
         for i,gp in enumerate(self.gp):
-            print("training models")
-            gp.train(x,y_cond[:,i])
+            print(y_cond,y_cond.shape,x.shape)
+            
+            use_to_train = np.array([True]*x.shape[0])if i == 0 else y_cond[:,i-1]
+            print(use_to_train,use_to_train.shape)
+            count_pos = use_to_train[use_to_train].size
+            print("There are %i positives for model %i"%(count_pos,i))
+            if count_pos>0:
+                gp.train(x[use_to_train],y_cond[use_to_train,i])
+                self.built[i] = True
             
     def optimise(self,parallel=False):
         
@@ -82,10 +92,17 @@ class GPC_heiracical():
                 
             #results
         else:
-            [gp.optimise() for gp in self.gp]
+            for i,gp in enumerate(self.gp):
+                if self.built[i]:
+                    gp.optimise()
             
     def predict(self,x):
-        results = [gp.predict(x) for gp in self.gp]
+        results = []
+        
+        for i,gp in enumerate(self.gp):
+                if self.built[i]:
+                    results += [gp.predict(x)]
+        
         return results
     
     

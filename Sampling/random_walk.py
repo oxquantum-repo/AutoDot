@@ -126,7 +126,6 @@ class MH_MCMC_Hypersurface(multiprocessing.Process):
         else:
             self.history_all = None
             
-        print(self.z)
 
         # Check whether the samples are valid
         if not isinstance(self.z, np.ndarray): raise ValueError('Incompatible sample shape')

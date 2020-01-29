@@ -44,3 +44,5 @@ class Tuning_dict(dict):
 
         with open(file_pth,'wb') as h:
             pickle.dump(save_dict,h)
+            
+        return self.getl(*track)

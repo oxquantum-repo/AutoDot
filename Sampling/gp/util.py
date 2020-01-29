@@ -47,7 +47,7 @@ class ConductingDetectorThreshold(object):
         return idxs[0] # return the first index satistying the condition
 
 def merge_data(vols_poff_all, detected_all, vols_poff_axes_all, poff_all):
-    print(detected_all,poff_all)
+    #print(detected_all,poff_all)
     vols_poff_all = np.array(vols_poff_all)
     detected_all = np.array(detected_all)
     vols_poff_axes_all = np.array(vols_poff_axes_all)
@@ -63,7 +63,7 @@ def merge_data(vols_poff_all, detected_all, vols_poff_axes_all, poff_all):
 
         vols_all = np.concatenate([vols_poff_all, vols_poff_axes_all], axis=0)
         
-        print(detected_all,poff_all)
+        #print(detected_all,poff_all)
         found_all = np.concatenate([detected_all, poff_all], axis=0)
         
         return vols_all, vols_all[found_all], found_all
@@ -95,18 +95,21 @@ def ur_from_vols_origin(vols, origin, returntype='list'):
 
 def compute_hardbound(poff_vec, found, vols_pinchoff, step_back, origin, bound):
     do_change = False
+    
+    print("dvec pinches: ",poff_vec)
 
     # Only one gate can pinchoff
     if np.sum(poff_vec) == 1:
         do_change = True
-        new_origin = origin.copy()
+        new_origin = np.array(origin).copy()
         # if only one gate can pinchoff the current, move the origin
         idx = np.nonzero(poff_vec)
         if found:
-            new_origin[idx] = vols_pinchoff[idx] + step_back
+            new_origin[idx] = np.array(vols_pinchoff)[idx] + np.array(step_back)
         if not found:
-            new_origin[idx] = vols_pinchoff[idx]
-        return do_change, new_origin
+            new_origin[idx] = np.array(vols_pinchoff)[idx]
+        origin = new_origin
+        print("New origin: ",origin)
     
     real_ub = np.maximum(origin,bound)
     real_lb = np.minimum(origin,bound)
