@@ -71,10 +71,8 @@ class GPC_heiracical():
     def train(self,x,y_cond):
         x = np.array(x)
         for i,gp in enumerate(self.gp):
-            print(y_cond,y_cond.shape,x.shape)
             
             use_to_train = np.array([True]*x.shape[0])if i == 0 else y_cond[:,i-1]
-            print(use_to_train,use_to_train.shape)
             count_pos = use_to_train[use_to_train].size
             print("There are %i positives for model %i"%(count_pos,i))
             if count_pos>0:

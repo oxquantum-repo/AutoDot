@@ -230,7 +230,7 @@ def project_samples_inside(hypersurface, samples, origin, ub, lb):
     out_of_ub = samples>np.atleast_2d(ub)
     samples[out_of_ub] = samples[out_of_ub] - 1.0
     out_of_lb = samples<np.atleast_2d(lb)
-    samples[out_of_ub] = samples[out_of_lb] + 1.0
+    samples[out_of_lb] = samples[out_of_lb] + 1.0
     return {'samples':samples}
     
 def train_gpr(model,origin,bounds,d_r,X,Y=None,optimise=False):
