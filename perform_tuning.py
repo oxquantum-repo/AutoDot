@@ -6,9 +6,8 @@ Created on Tue Nov 12 22:10:26 2019
 """
 import sys
 import json
-from tuning_gpc_main import main
+from Sampler_factory import Paper_sampler
 from Investigation.Investigation_factory import Investigation_stage
-import time
 
 def tune_with_pygor_from_file(config_file):
     
@@ -73,7 +72,15 @@ def tune(jump,measure,investigation_stage,configs):
     configs['jump'] = jump
     configs['measure'] = measure
     configs['investigation_stage_class'] = investigation_stage
-    main(configs)
+    ps = Paper_sampler(configs)
+    for i in range(configs['general']['num_samples']):
+        print("============### ITERATION %i ###============"%i)
+        results = ps.do_iter()
+        for key,item in results.items():
+            print("%s:"%(key),item[-1])
     
-    
+if __name__ == '__main__':
+   pass
+   #tune_with_pygor_from_file('tuning_config.json') 
+        
         
