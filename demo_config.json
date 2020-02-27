@@ -1,14 +1,15 @@
 {
-    "path_to_pygor":"C:\\Users\\Dominic\\Desktop\\MLdm\\dm-oxnm",
-    "gates":["c2","c3","c4","c5","c6","c7","c9"],
+    "path_to_pygor":"/home/mlserv/Scripts",
+    "gates":["c10","c3","c4","c5","c6","c7","c9"],
     "plunger_gates":["c5","c9"],
     "bias_chans":["c1"],
     "bias_vals":[20],
     "chan_no":0,
-    "save_dir":"GaAs_08012020_tunerun2/",
+    "save_dir":"dom_b2_t4_test_20200129/",
 
     "investigation":{
 	"measurement_seq":["diag_trace","2d_lowres","2d_highres"],
+	"cond_meas": [false, { "quantile" : 0.85,  "min_thresh" : 0.01 },  false],
 	"diag_trace":{
 	    "func":"do1dcombo",
 	    "condition":"peak_check",
@@ -16,7 +17,7 @@
 	    "minimum":2,
 	    "norm":"device_domain",
 	    "res":128,
-	    "size":200,
+	    "size":128,
 	    "direction":[1,1],
 	    "plot":true},
 	"2d_lowres":{
@@ -43,9 +44,9 @@
 	"th_score_lb": 0.02},
 
     "detector": {
-	"d_r": 10, 
+	"d_r": 20, 
 	"len_after_poff": 300, 
-	"th_high": 0.9, 
+	"th_high": 0.2, 
 	"th_low": 0.01},
 
     "general": {
@@ -53,7 +54,7 @@
 	"lb_box": [-2000, -2000, -2000, -2000, -2000,-2000, -2000],
 	"bound": [-2000, -2000, -2000, -2000, -2000,-2000, -2000],
 	"num_samples": 500,
-	"origin": [0,0,0,0,0,0,0],
+	"origin": [-100,-500,-100,-100,-100,-100,-100],
 	"ub_box": [0, 0, 0, 0, 0, 0, 0]},
 
     "gpc": {
@@ -82,12 +83,13 @@
     "pruning": {
 	"pruning_stop": 30, 
 	"pruning_on": false, 
-	"step_back": 0},
+	"step_back": 100},
 
     "sampling": {
 	"max_steps": 100000, 
 	"n_part": 200, 
 	"sigma": 25},
 
-    "track": ["gates", "origin", "bound", "directions", "samples", "extra_measure", "d_vec", "poff_vec", "meas_each_axis", "vols_each_axis"]
+    "track": ["gates", "origin", "bound", "directions", "samples", "extra_measure", "d_vec","poff_vec", "meas_each_axis", "vols_each_axis", "conditional_idx","vols_pinchoff","detected","r_vals"],
+    "verbose": ["conditional_idx","vols_pinchoff","detected","r_vals"]
 }
