@@ -78,9 +78,36 @@ def tune(jump,measure,investigation_stage,configs):
         results = ps.do_iter()
         for key,item in results.items():
             print("%s:"%(key),item[-1])
+            
+            
+def tune_origin_variable(jump,measure,par_invstage,child_invstage,par_configs,child_configs):
+
+    par_configs['jump'],child_configs['jump'] = jump,jump
+    par_configs['measure'],child_configs['measure'] = measure,measure
+    par_configs['investigation_stage_class'], child_invstage['investigation_stage_class'] = par_invstage, child_invstage
+    par_ps = Paper_sampler(par_configs)
+    child_ps_list = []
+    
+    ps = par_ps
+    par_flag = True
+    for i in range(par_configs['general']['num_samples']):
+        print("============### ITERATION %i ###============"%i)
+        results = ps.do_iter()
+        for key,item in results.items():
+            print("%s:"%(key),item[-1])
+        if par_flag:
+            if new_origin_condition(ps):
+                child_configs_new = config_constructor(child_configs,results)
+                child_ps_list+=[Paper_sampler(child_configs_new)]
+            
+        ps,par_flag = task_selector(par_ps,child_ps_list,i)
+    
+    
+            
     
 if __name__ == '__main__':
    pass
    #tune_with_pygor_from_file('tuning_config.json') 
+   
         
         
