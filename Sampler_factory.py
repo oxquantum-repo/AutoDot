@@ -1,7 +1,7 @@
 import time
 import multiprocessing
 from pathlib import Path
-from dict_util import Tuning_dict
+from main_utils.dict_util import Tuning_dict
 import numpy as np
 
 import Sampling.gp.util as util
