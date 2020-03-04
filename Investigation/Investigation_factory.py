@@ -4,8 +4,8 @@ Created on Thu Nov 14 10:28:23 2019
 
 @author: thele
 """
-import .measurement_functions as measurement_functions
-import .condition_functions as condition_functions
+from . import measurement_functions
+from . import condition_functions
 import numpy as np
 
 
