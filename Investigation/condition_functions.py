@@ -59,14 +59,15 @@ def last_score(data,minc,maxc,configs,**kwags):
     
     score = getattr(fsc,configs.get('mode','score'))(data,diff=configs.get('diff',1))
     
-    score_thresh = configs.get('score_thresh',None)
-    if score_thresh is None:
-        score_thresh = kwags.get('score_thresh')
+
+    
+    s_cond = False
+    
     
     
     print("Score: %f"%score)
     
-    return score, score>score_thresh, None
+    return score, s_cond, None
 
 
 
