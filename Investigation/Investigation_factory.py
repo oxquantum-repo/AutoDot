@@ -11,7 +11,7 @@ import numpy as np
 
 
 class Investigation_stage():
-    def __init__(self,jump,measure,check,configs,pygor=None):
+    def __init__(self,jump,measure,check,configs,timer,pygor=None):
         self.jump = jump
         self.measure = measure
         self.check = check
@@ -22,7 +22,7 @@ class Investigation_stage():
         self.isdynamic = configs.get('cond_meas',[False]*self.inv_max)
         
         self.stage_results = []
-        
+        self.timer = timer
         
         self.pygor = pygor
         
@@ -49,6 +49,8 @@ class Investigation_stage():
             
     def do_extra_measure(self,params,minc,maxc,**kwags):
         self.jump(params)
+        self.timer.start()
+        
         plunger_jump = lambda params:self.jump(params,True)
         kwags['pygor'] = self.pygor
         anchor_vals = self.check()
@@ -59,6 +61,7 @@ class Investigation_stage():
         all_resutls = [None]*self.inv_max
         for i in range(self.inv_max):
             data = self.aquisition_functions[i](plunger_jump,self.measure,anchor_vals,self.function_configs[i],**kwags)
+            self.timer.logtime()
             
             check_result,continue_on,meta_info = self.cond_functions[i](data,minc,maxc,self.function_configs[i],**kwags)
             
@@ -80,11 +83,12 @@ class Investigation_stage():
                 break
             
         self.stage_results += [all_resutls]    
-        
+        self.timer.stop()
         
         results_full['extra_measure'] = results
         results_full['conditional_idx'] = self.cond[i]
-            
+        results_full['times'] = self.timer.times_list[-1]
+        
         return results_full
       
         
