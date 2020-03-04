@@ -2,6 +2,7 @@ import time
 import multiprocessing
 from pathlib import Path
 from main_utils.dict_util import Tuning_dict
+from main_utils.utils import Timer
 import numpy as np
 
 import Sampling.gp.util as util
@@ -109,6 +110,7 @@ class Paper_sampler(Base_Sampler):
     def do_iter(self):
         
         i = self.t['iter']
+        self.timer.start()
         
         th_score=0.01
         
@@ -119,17 +121,21 @@ class Paper_sampler(Base_Sampler):
         print("GPR:",do_gpr,"GPC:",do_gpc,"prune:",do_pruning,"GPR1:",do_gpr_p1,"GPC1:",do_gpc_p1,"Optim:",do_optim)
         #pick a uvec and start sampling
         u, r_est = select_point(self.gpr, self.gpc, *self.t.get('origin', 'cand_v', 'all_v', 'directions'), do_gpr_p1, do_gpc_p1)
+        self.timer.logtime()
         self.sampler_hook = start_sampling(self.gpr, *self.t.get('samples', 'origin', 'real_ub', 'real_lb',
                                              'directions', 'n_part', 'sigma', 'max_steps'),sampler_hook=self.sampler_hook) if do_gpr_p1 else None
 
          
         r, vols_pinchoff, found, t_firstjump = self.tester.get_r(u, origin=self.t['origin'], r_est=r_est)
+        self.timer.logtime()
         self.t.app(r_vals=r,vols_pinchoff=vols_pinchoff, detected=found)
         
         prune_results = self.tester.measure_dvec(vols_pinchoff+(self.t['step_back']*np.array(self.t['directions']))) if do_pruning else [None]*4
+        self.timer.logtime()
         self.t.app(**dict(zip(('d_vec', 'poff_vec', 'meas_each_axis', 'vols_each_axis'),prune_results)))
         
         em_results = self.t['do_extra_meas'](vols_pinchoff, th_score) if found else {'conditional_idx':0}
+        self.timer.logtime()
         self.t.app(extra_measure=em_results), self.t.app(conditional_idx=em_results['conditional_idx'])
         
         if self.sampler_hook is not None: self.t.add(**stop_sampling(*self.sampler_hook)) 
@@ -139,11 +145,15 @@ class Paper_sampler(Base_Sampler):
         X_train_all, X_train, _ = util.merge_data(*self.t.get('vols_pinchoff', 'detected', 'vols_pinchoff_axes', 'vols_detected_axes'))           
         
         if do_gpr: train_gpr(self.gpr,*self.t.get('origin', 'bound', 'd_r'), X_train, optimise = do_optim or self.t['changed_origin'])
+        self.timer.logtime()
         if do_gpc: train_hgpc(self.gpc, self.t['vols_pinchoff'], unpack('conditional_idx',self.t['extra_measure']), self.t['gpc_list'], optimise = do_optim)
+        self.timer.logtime()
         
         if self.sampler_hook is not None and do_gpr:
             self.t.add(**project_samples_inside(self.gpr, *self.t.get('samples', 'origin', 'real_ub', 'real_lb')))
             
+        self.timer.stop()
+        self.t['times']=self.timer.times_list
         self.t['iter'] += 1
         self.t.save(track=self.t['track'])
         return self.t.getd(*self.t['verbose'])

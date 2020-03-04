@@ -56,15 +56,17 @@ def tune_with_pygor_from_file(config_file):
     
     assert len(gates) == len(configs['general']['origin'])
         
-        
-    investigation_stage = Investigation_stage(jump,measure,check,configs['investigation'])
+    inv_timer = Timer()
+    investigation_stage = Investigation_stage(jump,measure,check,configs['investigation'],inv_timer)
         
     tune(jump,measure,investigation_stage,configs)
 
 def tune_from_file(jump,measure,check,config_file):
     with open(config_file) as f:
         configs = json.load(f)
-    investigation_stage = Investigation_stage(jump,measure,check,configs['investigation'])
+        
+    inv_timer = Timer()
+    investigation_stage = Investigation_stage(jump,measure,check,configs['investigation'],inv_timer)
     tune(jump,measure,investigation_stage,configs)
     
 
