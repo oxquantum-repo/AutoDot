@@ -77,3 +77,5 @@ To run tuning with pygor once the above has been defined call the following:
 import AutoDot
 AutoDot.perform_tuning.tune_with_pygor_from_file(config_file)
 ```
+## Config structure
+Here is an [example config file](demo_config.json) contaiaing all the relevent fields
