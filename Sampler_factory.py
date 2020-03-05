@@ -1,16 +1,16 @@
 import time
 import multiprocessing
 from pathlib import Path
-from main_utils.dict_util import Tuning_dict
-from main_utils.utils import Timer
+from .main_utils.dict_util import Tuning_dict
+from .main_utils.utils import Timer
 import numpy as np
 
-import Sampling.gp.util as util
-from Sampling.test_common import Tester
-from Sampling.BO_common import random_hypersphere
-from Sampling.gp.GP_models import GPC_heiracical, GP_base
+from .Sampling.gp import util
+from .Sampling.test_common import Tester
+from .Sampling.BO_common import random_hypersphere
+from .Sampling.gp.GP_models import GPC_heiracical, GP_base
 
-import Sampling.random_walk as rw
+from .Sampling import random_walk as rw
 
 
 

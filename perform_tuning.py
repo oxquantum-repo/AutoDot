@@ -6,8 +6,8 @@ Created on Tue Nov 12 22:10:26 2019
 """
 import sys
 import json
-from Sampler_factory import Paper_sampler
-from Investigation.Investigation_factory import Investigation_stage
+from .Sampler_factory import Paper_sampler
+from .Investigation.Investigation_factory import Investigation_stage
 
 def tune_with_pygor_from_file(config_file):
     
