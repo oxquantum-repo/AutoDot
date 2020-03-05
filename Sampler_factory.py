@@ -35,7 +35,7 @@ class Base_Sampler(object):
         self.save_dir.mkdir(exist_ok=True) #nn
     
         #Unpack control classes/functions
-
+        
         
         self.t.add(**configs['general'])
         self.t.add(**get_real_bounds(*self.t.get('origin','bound')))
@@ -44,7 +44,7 @@ class Base_Sampler(object):
         self.t.add(n=len(self.t['origin']))
     
         self.set_detector_configs(configs['detector'])
-    
+        self.timer = Timer()
         
         
         self.investigation_stage = configs['investigation_stage_class']
