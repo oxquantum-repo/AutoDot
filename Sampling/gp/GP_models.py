@@ -4,11 +4,11 @@ Created on Fri Jan 24 16:19:24 2020
 
 @author: Dominic
 """
-from Sampling.gp.GPy_wrapper import GPyWrapper_Classifier as GPC
-import Sampling.gp.GP_util as GP_util
+from .GPy_wrapper import GPyWrapper_Classifier as GPC
+from . import GP_util
 import numpy as np
 import multiprocessing 
-from dict_util import Tuning_dict
+from ...main_utils.dict_util import Tuning_dict
 
 class GP_base():
     def __init__(self,n,bound,origin,configs,GP_type=False):

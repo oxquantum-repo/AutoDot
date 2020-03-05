@@ -1,5 +1,5 @@
 import numpy as np
-from Sampling.gp.GPy_wrapper import GPyWrapper
+from .GPy_wrapper import GPyWrapper
 from .util import L2_norm
 
 
