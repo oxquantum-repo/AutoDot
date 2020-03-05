@@ -8,6 +8,7 @@ import sys
 import json
 from .Sampler_factory import Paper_sampler
 from .Investigation.Investigation_factory import Investigation_stage
+from .main_utils.utils import Timer
 
 def tune_with_pygor_from_file(config_file):
     
