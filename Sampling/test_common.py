@@ -1,6 +1,6 @@
 import time
 import numpy as np
-import Sampling.gp.util
+from .gp import util
 
 def L2_norm(vector):
     return np.sqrt(np.sum(np.square(vector)))
