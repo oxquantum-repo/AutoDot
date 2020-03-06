@@ -47,21 +47,26 @@ class ConductingDetectorThreshold(object):
         return idxs[0] # return the first index satistying the condition
 
 def merge_data(vols_poff_all, detected_all, vols_poff_axes_all, poff_all):
+    #print(detected_all,poff_all)
     vols_poff_all = np.array(vols_poff_all)
     detected_all = np.array(detected_all)
     vols_poff_axes_all = np.array(vols_poff_axes_all)
-    poff_all = np.array(poff_all)
+    poff_all = np.array(poff_all,dtype=np.float)
 
     if vols_poff_axes_all.size == 0 and poff_all.size == 0:
-        return vols_poff_all, detected_all
+        return vols_poff_all, vols_poff_all[detected_all] , detected_all
     else:
         num_gates = vols_poff_all.shape[-1]
+        
         vols_poff_axes_all = vols_poff_axes_all.reshape((-1, num_gates))
         poff_all = poff_all.ravel()
 
         vols_all = np.concatenate([vols_poff_all, vols_poff_axes_all], axis=0)
+        
+        #print(detected_all,poff_all)
         found_all = np.concatenate([detected_all, poff_all], axis=0)
-        return vols_all, found_all
+        
+        return vols_all, vols_all[found_all], found_all
 
 def L1_norm(arr, axis=None, keepdims=False):
     return np.sum(np.fabs(arr), axis=axis, keepdims=keepdims)
@@ -88,21 +93,25 @@ def ur_from_vols_origin(vols, origin, returntype='list'):
     else:
         return u_all, r_all
 
-def compute_hardbound(poff_vec, found, vols_pinchoff, step_back, axes, origin):
+def compute_hardbound(poff_vec, found, vols_pinchoff, step_back, origin, bound):
     do_change = False
-    if len(axes) == 0:
-        return do_change, origin
+    
+    print("dvec pinches: ",poff_vec)
 
     # Only one gate can pinchoff
-    if np.sum(poff_vec[axes]) == 1:
+    if np.sum(poff_vec) == 1:
         do_change = True
-        new_origin = origin.copy()
+        new_origin = np.array(origin).copy()
         # if only one gate can pinchoff the current, move the origin
         idx = np.nonzero(poff_vec)
         if found:
-            new_origin[idx] = vols_pinchoff[idx] + step_back
+            new_origin[idx] = np.array(vols_pinchoff)[idx] + np.array(step_back)
         if not found:
-            new_origin[idx] = vols_pinchoff[idx]
-        return do_change, new_origin
-
-    return do_change, origin
+            new_origin[idx] = np.array(vols_pinchoff)[idx]
+        origin = new_origin
+        print("New origin: ",origin)
+    
+    real_ub = np.maximum(origin,bound)
+    real_lb = np.minimum(origin,bound)
+    
+    return {'changed_origin':do_change, 'origin':origin, 'real_ub':real_ub, 'real_lb':real_lb}

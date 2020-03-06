@@ -8,7 +8,7 @@ Created on Fri Nov 15 07:11:05 2019
 import scipy.signal as signal
 import pickle
 import numpy as np
-from Investigation.scoring.Last_score import final_score_cls
+from .scoring.Last_score import final_score_cls
 from skimage.feature import blob_log
 
 
@@ -59,14 +59,15 @@ def last_score(data,minc,maxc,configs,**kwags):
     
     score = getattr(fsc,configs.get('mode','score'))(data,diff=configs.get('diff',1))
     
-    score_thresh = configs.get('score_thresh',None)
-    if score_thresh is None:
-        score_thresh = kwags.get('score_thresh')
+
+    
+    s_cond = False
+    
     
     
     print("Score: %f"%score)
     
-    return score, score>score_thresh, None
+    return score, s_cond, None
 
 
 

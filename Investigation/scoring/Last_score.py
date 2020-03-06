@@ -10,7 +10,7 @@ Created on Mon Jun 17 16:36:55 2019
 import numpy as np
 from scipy import signal
 from scipy.optimize import least_squares
-from Investigation.scoring.score_helper import ress_1line,ress_2line_pm,signaltonoise,grid_search
+from .score_helper import ress_1line,ress_2line_pm,signaltonoise,grid_search
 
 
 class final_score_cls():
