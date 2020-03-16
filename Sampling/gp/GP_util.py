@@ -1,6 +1,11 @@
 import numpy as np
+<<<<<<< HEAD
 from Sampling.gp.GPy_wrapper import GPyWrapper
 from Sampling.gp.util import L2_norm
+=======
+from .GPy_wrapper import GPyWrapper
+from .util import L2_norm
+>>>>>>> af1f77f43f16b0de5dad592db2618067a1daad8c
 
 
 def create_GP(num_active_gates, k_name='Matern52', var_f=1.0, lengthscale=1.0, center=0.0, const_kernel=False, GP = GPyWrapper):

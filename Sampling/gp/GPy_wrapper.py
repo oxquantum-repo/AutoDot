@@ -2,7 +2,11 @@ import numpy as np
 
 import GPy
 
+<<<<<<< HEAD
 from Sampling.gp.GP_interface import GPInterface, convert_lengthscale, convert_2D_format
+=======
+from .GP_interface import GPInterface, convert_lengthscale, convert_2D_format
+>>>>>>> af1f77f43f16b0de5dad592db2618067a1daad8c
 
 class GPyWrapper(GPInterface):
     def __init__(self):
@@ -100,7 +104,7 @@ class GPyWrapper(GPInterface):
         '''
         return self.model.posterior_samples_f(x, size) + self.center
 
-    def optimize(self, num_restarts=30, opt_messages=False, print_result=True):
+    def optimize(self, num_restarts=30, opt_messages=False, print_result=True, parallel=False):
         self.model.optimize_restarts(num_restarts=num_restarts, robust=True, parallel=False, messages=opt_messages)
         if print_result:
             print(self.kernel)
