@@ -66,14 +66,9 @@ class TesterInside(object):
         self.directions = directions
     def __call__(self, z):
         u, r = ur_from_v(z, self.origin)
-<<<<<<< HEAD
-        r_surf, _ = self.gp.predict_f(u)
-        return r < r_surf[:,0]
-=======
         r_surf, _ = self.gp.predict(u)
 
         return r < np.maximum( r_surf[:,0], 0.0)
->>>>>>> af1f77f43f16b0de5dad592db2618067a1daad8c
 
 class TesterBoundary(object):
     def __init__(self, lb, ub, conditions=tuple()):

@@ -6,14 +6,9 @@ Created on Tue Nov 12 22:10:26 2019
 """
 import sys
 import json
-<<<<<<< HEAD
-from tuning_gpc_main import main
-from Investigation.Investigation_factory import Investigation_stage
-=======
 from .Sampler_factory import Paper_sampler
 from .Investigation.Investigation_factory import Investigation_stage
 from .main_utils.utils import Timer
->>>>>>> af1f77f43f16b0de5dad592db2618067a1daad8c
 
 def tune_with_pygor_from_file(config_file):
     

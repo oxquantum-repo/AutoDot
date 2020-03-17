@@ -2,11 +2,7 @@ import numpy as np
 
 import GPy
 
-<<<<<<< HEAD
-from Sampling.gp.GP_interface import GPInterface, convert_lengthscale, convert_2D_format
-=======
 from .GP_interface import GPInterface, convert_lengthscale, convert_2D_format
->>>>>>> af1f77f43f16b0de5dad592db2618067a1daad8c
 
 class GPyWrapper(GPInterface):
     def __init__(self):
