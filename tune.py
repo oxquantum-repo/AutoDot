@@ -9,6 +9,12 @@ import json
 from .Sampler_factory import Paper_sampler
 from .Investigation.Investigation_factory import Investigation_stage
 from .main_utils.utils import Timer
+from .Playground.mock_device import build_mock_device_with_json
+
+
+
+
+
 
 def tune_with_pygor_from_file(config_file):
     
@@ -61,6 +67,43 @@ def tune_with_pygor_from_file(config_file):
     investigation_stage = Investigation_stage(jump,measure,check,configs['investigation'],inv_timer)
         
     tune(jump,measure,investigation_stage,configs)
+    
+    
+    
+    
+    
+def tune_with_playground_from_file(config_file):
+    
+    with open(config_file) as f:
+        configs = json.load(f)
+        
+        
+        
+    device = build_mock_device_with_json(configs['playground'])
+    
+    plunger_gates = configs['plunger_gates']
+    
+    
+    def jump(params,inv=False):
+        if inv:
+            return params
+        else:
+            return device.jump(params)
+    
+    
+    measure = device.measure
+    
+    check = lambda: device.check(plunger_gates)
+    
+    inv_timer = Timer()
+    investigation_stage = Investigation_stage(jump,measure,check,configs['investigation'],inv_timer)
+        
+    tune(jump,measure,investigation_stage,configs)
+    
+    
+    
+    
+
 
 def tune_from_file(jump,measure,check,config_file):
     with open(config_file) as f:
@@ -69,6 +112,17 @@ def tune_from_file(jump,measure,check,config_file):
     inv_timer = Timer()
     investigation_stage = Investigation_stage(jump,measure,check,configs['investigation'],inv_timer)
     tune(jump,measure,investigation_stage,configs)
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
     
 
 def tune(jump,measure,investigation_stage,configs):

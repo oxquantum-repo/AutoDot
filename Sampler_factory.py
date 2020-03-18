@@ -138,6 +138,8 @@ class Paper_sampler(Base_Sampler):
         self.timer.logtime()
         self.t.app(extra_measure=em_results), self.t.app(conditional_idx=em_results['conditional_idx'])
         
+        
+        if self.t['pause'] is not None: time.sleep(self.t['pause'])
         if self.sampler_hook is not None: self.t.add(**stop_sampling(*self.sampler_hook)) 
         
         if do_pruning: self.t.add(**util.compute_hardbound(*self.t.getl('poff_vec', 'detected', 'vols_pinchoff'), *self.t.get('step_back', 'origin', 'bound')))
@@ -156,6 +158,7 @@ class Paper_sampler(Base_Sampler):
         self.t['times']=self.timer.times_list
         self.t['iter'] += 1
         self.t.save(track=self.t['track'])
+     
         return self.t.getd(*self.t['verbose'])
         
 def select_point(hypersurface, selection_model, origin, cand_v, all_v, directions, use_selection=True, estimate_r=True):
