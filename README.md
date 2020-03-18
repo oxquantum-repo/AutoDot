@@ -64,7 +64,7 @@ config_file should be a string that specifies the file path of a .json file cont
 To run tuning without pygor once the above has been defined call the following:
 ```python
 import AutoDot
-AutoDot.perform_tuning.tune_from_file(jump,measure,check,config_file)
+AutoDot.tune.tune_from_file(jump,measure,check,config_file)
 ```
 ### With pygor
 To use the algorithm without pygor you must create the following:
@@ -75,7 +75,7 @@ config_file should be a string that specifies the file path of a .json file cont
 To run tuning with pygor once the above has been defined call the following:
 ```python
 import AutoDot
-AutoDot.perform_tuning.tune_with_pygor_from_file(config_file)
+AutoDot.tune.tune_with_pygor_from_file(config_file)
 ```
 ## Config structure
 Here is an [example config file](demo_config.json) containing all the relevent fields and below is a dicussion about each fields function
