@@ -7,6 +7,26 @@
 
 # Import modules
 import time
+import numpy as np
+import matplotlib.pyplot as plt
+
+
+
+def plot_conditional_idx_improvment(cond_idx,cond_count=2):
+    
+    found = (np.array(cond_idx)>=cond_count).astype(np.float)
+    
+    count = [None]*len(found)
+    for i in range(len(found)):
+        count[i] = np.average(found[:i])
+        
+    plt.plot(count)
+    plt.show()
+
+
+
+
+
 
 # Define Timer Error class
 class TimerError(Exception): 
@@ -15,9 +35,10 @@ class TimerError(Exception):
 # Define Timer class
 class Timer():
     
-    def __init__(self, elapsed_time_text="Elapsed time: {:0.4f} seconds", runtime_text="Current runtime: {:0.4f} seconds"):
+    def __init__(self, verbose=False , elapsed_time_text="Elapsed time: {:0.4f} seconds", runtime_text="Current runtime: {:0.4f} seconds"):
         # Initialise <._start_time> attrtibute
         self._start_time = None
+        self.verbose = verbose
         # create format: default text to report current runtime for logging and elapsed time upon stopping timer
         self.runtime_text = runtime_text
         self.elapsed_time_text = elapsed_time_text
@@ -46,7 +67,7 @@ class Timer():
         self.times_list[-1].append(runtime)
 
         # print current runtime to console by first formatting text template
-        print(self.runtime_text.format(runtime))
+        if self.verbose: print(self.runtime_text.format(runtime))
     
     # stop the timer
     def stop(self):
@@ -65,5 +86,5 @@ class Timer():
         self._start_time = None
        
         # print elapsed time to console by first formatting text template
-        print(self.elapsed_time_text.format(elapsed_time))
+        if self.verbose: print(self.elapsed_time_text.format(elapsed_time))
 

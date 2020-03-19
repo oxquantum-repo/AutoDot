@@ -68,7 +68,7 @@ class Convexhull(object):
         return self.hull.find_simplex(x) >= 0
 
 class Crosstalk_box(Convexhull):
-    def __init__(self, ndim, a=-1000, b=0, a_prime=-900):
+    def __init__(self, ndim, a=-1500, b=1500, a_prime=-1000):
     
     
         if np.isscalar(a):

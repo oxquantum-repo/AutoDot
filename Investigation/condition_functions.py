@@ -12,7 +12,25 @@ from .scoring.Last_score import final_score_cls
 from skimage.feature import blob_log
 
 
-
+def mock_peak_check(anchor,minc,maxc,configs,**kwags):
+    a = configs.get('a',None)
+    b = configs.get('b',None)
+    verb = configs.get('verbose',False)
+    
+    if a is None and b is None:
+        prob = configs.get('prob',0.5)
+        
+        c_peak = np.random.uniform(0,1)<prob
+        if verb: print(c_peak)
+        return c_peak, c_peak, None
+    
+    lb, ub = np.minimum(a,b), np.maximum(a,b)
+    
+    c_peak = np.all(anchor<ub) and np.all(anchor>lb)
+    if verb: print(c_peak)
+    return c_peak, c_peak, None
+        
+    
 
 def check_nothing(trace,minc,maxc,configs,**kwags):
     output = configs.get('output',False)

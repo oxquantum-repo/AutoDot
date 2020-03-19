@@ -15,6 +15,10 @@ def do_nothing(jump,measure,anchor_vals,configs,**kwags):
     return None
 
 
+def mock_measurement(jump,measure,anchor_vals,configs,**kwags):
+    return anchor_vals
+
+
 def do1dcombo(jump,measure,anchor_vals,configs,**kwags):
     size = configs.get('size',128)
     direction = np.array(configs.get('direction',[1]*len(anchor_vals)))
