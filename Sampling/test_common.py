@@ -141,6 +141,7 @@ class Tester(object):
         # 2. break if poff detected, but check some signal afterwards within 'len_after'
         first_iter = True
         while check_inside_boundary(voltages, self.lb, self.ub) and L2_norm(voltages-voltages_from) < max_dist:
+            
             if first_iter:
                 t = time.time()
                 # big jump expected, swith on the big jump mode

@@ -252,7 +252,7 @@ def project_points_to_inside(v, gp, origin, factor=0.5):
 
 def project_points_to_boundary(v, gp, origin):
     u, r = ur_from_v(v, origin)
-    r_surf, _ = gp.predict_f(u)
+    r_surf, _ = gp.predict(u)
 
     v_boundary = u * r_surf + origin
     return v_boundary

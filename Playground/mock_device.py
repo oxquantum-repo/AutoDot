@@ -38,7 +38,7 @@ class Device():
         self.shapes_list = shapes_list
         
     def jump(self, params):
-        self.params = np.array(params)
+        self.params = np.array(params).squeeze()
         return params
         
     def measure(self):

@@ -98,10 +98,10 @@ def tune_with_playground_from_file(config_file):
     inv_timer = Timer()
     investigation_stage = Investigation_stage(jump,measure,check,configs['investigation'],inv_timer)
         
-    results = tune(jump,measure,investigation_stage,configs)
+    results,sampler = tune(jump,measure,investigation_stage,configs)
     
     plot_conditional_idx_improvment(results['conditional_idx'])
-    return results
+    return results,sampler
     
     
     
@@ -113,8 +113,8 @@ def tune_from_file(jump,measure,check,config_file):
         
     inv_timer = Timer()
     investigation_stage = Investigation_stage(jump,measure,check,configs['investigation'],inv_timer)
-    results = tune(jump,measure,investigation_stage,configs)
-    return results
+    results,sampler = tune(jump,measure,investigation_stage,configs)
+    return results,sampler
     
     
     
@@ -138,7 +138,7 @@ def tune(jump,measure,investigation_stage,configs):
         for key,item in results.items():
             print("%s:"%(key),item[-1])
             
-    return results
+    return results, ps
             
             
 def tune_origin_variable(jump,measure,par_invstage,child_invstage,par_configs,child_configs):

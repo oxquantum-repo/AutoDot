@@ -10,7 +10,7 @@ import pickle
 import numpy as np
 from .scoring.Last_score import final_score_cls
 from skimage.feature import blob_log
-
+import time
 
 def mock_peak_check(anchor,minc,maxc,configs,**kwags):
     a = configs.get('a',None)
@@ -29,6 +29,15 @@ def mock_peak_check(anchor,minc,maxc,configs,**kwags):
     c_peak = np.all(anchor<ub) and np.all(anchor>lb)
     if verb: print(c_peak)
     return c_peak, c_peak, None
+
+
+def mock_score_func(anchor,minc,maxc,configs,**kwags):
+    a = np.array(configs.get('target',[-500,-500]))
+    
+    score = 100/ np.linalg.norm(a-anchor)
+    print(score)
+    time.sleep(2)
+    return score, False, None
         
     
 

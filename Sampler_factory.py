@@ -85,8 +85,8 @@ class Paper_sampler(Base_Sampler):
         self.sampler_hook = None #bodge
         
         self.t.add(samples=None,point_selected=None,boundary_points=[],
-                   vols_poff=[],detected=[],vols_poff_axes=[],poff=[],
-                   cand_v=[],all_v=[],vols_pinchoff=[],d_vec=[],poff_vec=[],meas_each_axis=[],vols_each_axis=[],extra_measure=[],
+                   vols_poff=[],detected=[],vols_poff_axes=[],poff=[]
+                   ,all_v=[],vols_pinchoff=[],d_vec=[],poff_vec=[],meas_each_axis=[],vols_each_axis=[],extra_measure=[],
                    vols_pinchoff_axes=[],vols_detected_axes=[],changed_origin=[],conditional_idx=[],r_vals=[])
 
         
@@ -120,7 +120,7 @@ class Paper_sampler(Base_Sampler):
         do_gpr_p1, do_gpc_p1 = (i-1>self.t['gpr_start']) and self.t['gpr_on'], (i-1>self.t['gpc_start']) and self.t['gpc_on']
         print("GPR:",do_gpr,"GPC:",do_gpc,"prune:",do_pruning,"GPR1:",do_gpr_p1,"GPC1:",do_gpc_p1,"Optim:",do_optim)
         #pick a uvec and start sampling
-        u, r_est = select_point(self.gpr, self.gpc, *self.t.get('origin', 'cand_v', 'all_v', 'directions'), do_gpr_p1, do_gpc_p1)
+        u, r_est = select_point(self.gpr, self.gpc, *self.t.get('origin', 'boundary_points', 'vols_pinchoff', 'directions'), do_gpr_p1, do_gpc_p1)
         self.timer.logtime()
         self.sampler_hook = start_sampling(self.gpr, *self.t.get('samples', 'origin', 'real_ub', 'real_lb',
                                              'directions', 'n_part', 'sigma', 'max_steps'),sampler_hook=self.sampler_hook) if do_gpr_p1 else None
@@ -161,9 +161,9 @@ class Paper_sampler(Base_Sampler):
      
         return self.t.getd(*self.t['verbose'])
         
-def select_point(hypersurface, selection_model, origin, cand_v, all_v, directions, use_selection=True, estimate_r=True):
+def select_point(hypersurface, selection_model, origin, boundary_points, vols_pinchoff, directions, use_selection=True, estimate_r=True):
     """selects a point to investigate using thompson sampling, uniform sampling or random angles
-    depending on use_selection flag or is no cand_v are present
+    depending on use_selection flag or is no samples are present
     Args:
         hypersurface:  model of the hypersurface
         selection_model: model of probability of observing desirable features
@@ -175,17 +175,23 @@ def select_point(hypersurface, selection_model, origin, cand_v, all_v, direction
         unit vector
     """
     
-    if len(cand_v) > 0 and use_selection:
-        points_candidate = rw.project_crosses_to_boundary(cand_v, hypersurface, origin)
-        v = choose_next(points_candidate, all_v, selection_model, d_tooclose = 20.)
-    elif len(cand_v) != 0:
-        v = rw.pick_from_boundary_points(cand_v)
+    boundary_points = [] if boundary_points is None else boundary_points
+    
+    if len(boundary_points) > 0 and use_selection:
+        points_candidate = rw.project_crosses_to_boundary(boundary_points, hypersurface, origin)
+        v = choose_next(points_candidate, vols_pinchoff, selection_model, d_tooclose = 20.)
+    elif len(boundary_points) != 0:
+        v = rw.pick_from_boundary_points(boundary_points)
     else:
         print('WARNING: no boundary point is sampled')
         return random_angle_directions(len(origin), 1, np.array(directions))[0], None
     v_origin = v - origin
     u = v_origin / np.sqrt(np.sum(np.square(v_origin)))
-    return u, hypersurface.predict(u) if estimate_r else None
+    r_est,r_std = hypersurface.predict(u[np.newaxis,:])
+    
+    r_est = np.maximum(r_est - 1.0*np.sqrt(r_std), 0.0)
+    
+    return u.squeeze(), r_est.squeeze() if estimate_r else None
 
 
 
@@ -236,6 +242,7 @@ def stop_sampling(sampler,stopper,listener):
     counter, samples, boundary_points = listener.recv()
     sampler.join()
     print("STOP")
+    print(len(samples),len(boundary_points))
     return {'samples':samples,'boundary_points':boundary_points}
 
 def project_samples_inside(hypersurface, samples, origin, ub, lb):
@@ -283,14 +290,9 @@ def unpack(key,list_of_dict):
 
 def predict_probs(points, gpc_list):
     
-    probs = []
-    for gpc in gpc_list:
-        probs += [gpc.predict_prob(points)[:,0]]
+    total_probs = gpc_list.predict_comb_prob(points)
 
-
-    total_prob = np.prod(probs, axis=0)
-    log_total_prob = np.sum(np.log(probs), axis=0)
-    return total_prob, log_total_prob, probs
+    return total_probs.squeeze(), None, None
 
 def choose_next(points_candidate, points_observed, gpc_dict, d_tooclose = 100.):
     points_observed = np.array(points_observed)
