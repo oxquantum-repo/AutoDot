@@ -1,0 +1,81 @@
+{
+    "playground":{
+	"shapes":{
+		"Crosstalk_box":{},
+		"Leakage":{}},
+	"ndim":3},
+
+    "plunger_gates": [1,2],
+    "save_dir":"dummy_test/",
+    "plot":true,
+
+    "pause":0.2,
+
+    "investigation":{
+	"measurement_seq":["diag_trace","2d_lowres","2d_highres"],
+	"cond_meas": [false,{ "quantile" : 0.85,  "min_thresh" : 0.001 },  false],
+	"diag_trace":{
+	    "func":"mock_measurement",
+	    "condition":"mock_peak_check",
+	    "a":[0,0],
+	    "b":[-1000,-1000],
+	    "verbose":true},
+	"2d_lowres":{
+	    "func":"mock_measurement",
+	    "condition":"mock_score_func",
+	    "target":[-500,-250]},
+	"2d_highres":{
+	    "func":"mock_measurement",
+	    "condition":"check_nothing"}},
+
+    "detector": {
+	"d_r": 20, 
+	"len_after_poff": 300, 
+	"th_high": 0.2, 
+	"th_low": 0.01},
+
+    "general": {
+	"directions": [-1.0, -1.0, -1.0],
+	"lb_box": [-2000, -2000, -2000],
+	"bound": [-2000, -2000, -2000],
+	"num_samples": 50,
+	"origin": [0,0,0],
+	"ub_box": [0, 0, 0]},
+
+    "gpc": {
+	"gpc_start": 10, 
+	"gpc_on": true,
+	"gpc_list": [true,true,false],
+	"configs": {
+	    "length_prior_mean": 500.0,
+	    "length_prior_var": 100.0,
+	    "var_prior_mean": 50.0,
+	    "var_prior_var": 20.0,
+	    "kernal": "Matern52"}
+	},
+
+    "gpr": {
+	"restarts": 5,
+	"factor_std": 2.0, 
+	"gpr_start": 10, 
+	"gpr_on": true,
+	"length_prior_mean":0.4, 
+	"length_prior_var" : 0.1,
+	"r_min": 0.0,
+	"var_prior_mean_divisor": 4.0,
+	"kernal": "Matern52"},
+
+    "pruning": {
+	"pruning_stop": 30, 
+	"pruning_on": true, 
+	"step_back": 100},
+
+    "sampling": {
+	"max_steps": 100000, 
+	"n_part": 200, 
+	"sigma": 25},
+
+    "track": ["origin", "bound", "directions", "samples", "extra_measure", "d_vec","poff_vec", "meas_each_axis", "vols_each_axis", "conditional_idx","vols_pinchoff","detected","r_vals"],
+    "verbose": ["conditional_idx","vols_pinchoff","detected","r_vals"]
+}
+

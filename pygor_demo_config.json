@@ -1,11 +1,11 @@
 {
     "path_to_pygor":"/home/mlserv/Scripts",
-    "gates":["c10","c3","c4","c5","c6","c7","c9"],
+    "gates":["c3","c4","c5","c6","c7","c9","c10"],
     "plunger_gates":["c5","c9"],
     "bias_chans":["c1"],
     "bias_vals":[20],
     "chan_no":0,
-    "save_dir":"dom_b2_t4_test_20200129/",
+    "save_dir":"dom_b2_t4_sebtune_23032020/",
 
     "investigation":{
 	"measurement_seq":["diag_trace","2d_lowres","2d_highres"],
@@ -54,7 +54,7 @@
 	"lb_box": [-2000, -2000, -2000, -2000, -2000,-2000, -2000],
 	"bound": [-2000, -2000, -2000, -2000, -2000,-2000, -2000],
 	"num_samples": 500,
-	"origin": [-100,-500,-100,-100,-100,-100,-100],
+	"origin": [-500,-100,-100,-100,-100,-100,-100],
 	"ub_box": [0, 0, 0, 0, 0, 0, 0]},
 
     "gpc": {

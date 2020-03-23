@@ -40,7 +40,7 @@ class Box(object):
 
     def __call__(self, x):
         x = np.array(x)
-        inside = np.logical_and(np.all(x > self.lb, axis=-1), np.all(x < self.ub, axis=-1))
+        inside = np.logical_and(np.all(x > self.lb[np.newaxis,:], axis=-1), np.all(x < self.ub[np.newaxis,:], axis=-1))
         return inside
 
 class Leakage(object):
@@ -49,9 +49,9 @@ class Leakage(object):
         self.leak_gate = idx
     def __call__(self, x):
         x = np.array(x)
-        leak = x[self.leak_gate] > self.th_leak
+        leak = x[:,self.leak_gate] > self.th_leak
         return leak
-
+#change
 class Convexhull(object):
     def __init__(self, ndim, points=[-1000,0,[-1000,0],[0,-1000]]):
         # points: 2D array (num_points x ndim)
