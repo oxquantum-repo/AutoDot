@@ -54,7 +54,7 @@ def tune_with_pygor_from_file(config_file):
                 labels = plunger_gates
             else:
                 labels = gates
-            pygor.setvals(labels,params[np.newaxis,:])
+            pygor.setvals(labels,params)
             return params
     def measure():
         cvl = pygor.do0d()[chan_no][0]

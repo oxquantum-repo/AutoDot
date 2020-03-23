@@ -139,7 +139,6 @@ class Paper_sampler(Base_Sampler):
         self.t.app(extra_measure=em_results), self.t.app(conditional_idx=em_results['conditional_idx'])
         
         
-        if self.t['pause'] is not None: time.sleep(self.t['pause'])
         if self.sampler_hook is not None: self.t.add(**stop_sampling(*self.sampler_hook)) 
         
         if do_pruning: self.t.add(**util.compute_hardbound(*self.t.getl('poff_vec', 'detected', 'vols_pinchoff'), *self.t.get('step_back', 'origin', 'bound')))
