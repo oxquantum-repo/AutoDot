@@ -15,7 +15,7 @@ pyDOE
 skimage
 ```
 ## Using the algorithm
-Using the aglgorithm varies depending on what measurment software you use in your lab. Specififically if your lab utilises pygor then you should call a different function to initiate the tuning.
+Using the algorithm varies depending on what measurment software you use in your lab or what you want to achieve. Specififically if your lab utilises pygor then you should call a different function to initiate the tuning. If you are unable to access a lab then you can still create a virtual enviroment to test the algorithm in using the Playground module. Bellow is documentation detailing how to run the algorithm for each of these situations.
 ### Without pygor
 To use the algorithm without pygor you must create the following:
 - jump
@@ -74,6 +74,14 @@ To run tuning with pygor once the above has been defined call the following:
 import AutoDot
 AutoDot.tune.tune_with_pygor_from_file(config_file)
 ```
+### With playground (enviroment)
+To use the algorithm using the playground you must create the following:
+
+<ins>config_file:</ins>
+config_file should be a string that specifies the file path of a .json file containing a json opject that specifies the desired settings the user wants to use for tuning. An example string would be "demo_config.json".
+
+Provided already is a [demo config](mock_dummy_demo_config.json) json that will run ![](color_comp_dummy.gif)
+
 ## Config structure
 Here is an [example config file](demo_config.json) containing all the relevent fields and below is a dicussion about each fields function
 ```
