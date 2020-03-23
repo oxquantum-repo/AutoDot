@@ -80,7 +80,7 @@ To use the algorithm using the playground you must create the following:
 <ins>config_file:</ins>
 config_file should be a string that specifies the file path of a .json file containing a json opject that specifies the desired settings the user wants to use for tuning. An example string would be "demo_config.json".
 
-Provided already is a [demo config](mock_dummy_demo_config.json) json that will run ![](color_comp_dummy.gif)
+Provided already is a [demo config](mock_device_demo_config.json) json that will run 50 iterations of the algorithm as used in the paper with mock versions of the investigation stage steps. ![](color_comp_dummy.gif)
 
 ## Config structure
 Here is an [example config file](demo_config.json) containing all the relevent fields and below is a dicussion about each fields function
