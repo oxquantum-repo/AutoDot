@@ -1,6 +1,6 @@
 **Note running this demo with plot field set to true (like it is in the demo) imageio is required as an additional dependancy.**
 ## Before running
-Provided already is a [demo config](mock_device_demo_config.json) json that will run 50 iterations of the algorithm as used in the paper with mock versions of the investigation stage steps in the 3D enviroment plotted below. The enviroment is specified to be 3D using the "ndim" field and the shape of the enviroment is specified using primitive shapes that are defined in [shapes.py](Playground/shapes.py). The example used in the demo combines a standard Crosstalk_box and Leakage shape (note leakage does not refer to leaky gates but refers to alteritive undesired current pathways from source to drain). A 3D Crosstalk_box is the type of shape one should expect to observe for three barrier gates. A Leakage demonstrates the pruning method and would be expected if one gate was required to define the current path (like a large top gate or V_1 in the original paper).
+Provided already is a [demo config](../mock_device_demo_config.json) json that will run 50 iterations of the algorithm as used in the paper with mock versions of the investigation stage steps in the 3D enviroment plotted below. The enviroment is specified to be 3D using the "ndim" field and the shape of the enviroment is specified using primitive shapes that are defined in [shapes.py](shapes.py). The example used in the demo combines a standard Crosstalk_box and Leakage shape (note leakage does not refer to leaky gates but refers to alteritive undesired current pathways from source to drain). A 3D Crosstalk_box is the type of shape one should expect to observe for three barrier gates. A Leakage demonstrates the pruning method and would be expected if one gate was required to define the current path (like a large top gate or V_1 in the original paper).
 
 ## During running
 During running the algorithm will print many outputs. An example output for an iteration is:
@@ -86,9 +86,10 @@ Distance from origin to the pinch off
 
 
 ## After running
+All results are saved in the save directory ("save_dir") in a file called tuning.pkl. The saved fields are specified in "track". Useful fields that you might want to look at are "vols_pinchoff" (list of all pinch-off's or points where the algorithm hit the boundary), "detected" (if the point is a pinch-off or boundary point), "conditional_idx" (denotes how sucessful a given iteration was at passing charicterisation tests), "r_vals" (distance from origin to the pinch-off/boundary), and "extra_measure" (contains list of dicts that contain all information gathered by the investigation stage including stability diagrams if running on a real device). 
 
-![](main_utils/demo_run_data/color_comp_dummy.gif)
+![](demo_run_data/color_comp_dummy.gif)
 
 After running the raw outputs of the algorithm 
 
-![](main_utils/demo_run_data/gpr_and_gpc.gif)
+![](demo_run_data/gpr_and_gpc.gif)
