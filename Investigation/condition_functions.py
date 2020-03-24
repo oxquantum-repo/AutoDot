@@ -36,7 +36,6 @@ def mock_score_func(anchor,minc,maxc,configs,**kwags):
     
     score = 100/ np.linalg.norm(a-anchor)
     print(score)
-    time.sleep(2)
     return score, False, None
         
     

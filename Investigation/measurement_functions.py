@@ -16,6 +16,8 @@ def do_nothing(jump,measure,anchor_vals,configs,**kwags):
 
 
 def mock_measurement(jump,measure,anchor_vals,configs,**kwags):
+    pause = configs.get('pause',0)
+    time.sleep(pause)
     return anchor_vals
 
 
