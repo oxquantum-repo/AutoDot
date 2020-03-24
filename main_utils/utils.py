@@ -11,7 +11,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from skimage import measure
 from pathlib import Path
-import imageio
+
 
 
 def plot_conditional_idx_improvment(cond_idx, config,cond_count=2,save=True):
@@ -118,6 +118,7 @@ def plot_3d_scatter(points,condidx=None,condidx_max=3,cmap='plasma',ax=None):
     return ax
 
 def rotate_save(ax,path,step=9):
+    import imageio
     
     Path(path).mkdir(parents=True,exist_ok=True)
     

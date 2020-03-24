@@ -241,7 +241,6 @@ def stop_sampling(sampler,stopper,listener):
     counter, samples, boundary_points = listener.recv()
     sampler.join()
     print("STOP")
-    print(len(samples),len(boundary_points))
     return {'samples':samples,'boundary_points':boundary_points}
 
 def project_samples_inside(hypersurface, samples, origin, ub, lb):
