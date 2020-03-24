@@ -1,4 +1,38 @@
-**Note running this demo with plot field set to true (like it is in the demo) imageio is required as an additional dependency.**
+**running this demo with plot field set to true (like it is in the demo) imageio is required as an additional dependency.**
+
+## How to run from scratch
+If you're in a hurry do the following to run the demo:
+
+**NOTE: DUE TO MULTIPROCESSING PACKAGE THE FOLLOWING MUST BE PERFORMED ON A UNIX/LINUX OPERATING SYSTEM**
+
+```
+conda create --name demo_test python=3.6
+conda activate demo_test
+```
+To create and activate a new enviroment
+
+```
+conda install scikit-image scipy numpy matplotlib 
+conda install -c conda-forge pydoe gpy
+```
+To install the required packages
+
+
+Then in the parent folder of AutoDot:
+```
+python
+```
+To open a shell
+```python
+from AutoDot.tune import tune_with_playground_from_file 
+tune_with_playground_from_file('AutoDot/mock_device_demo_config.json')
+```
+To run (if "plot":true you must close plots manually)
+
+Outputs:
+Plots (gifs) are saved in the folder 'mock_device_demo'
+
+If you're not in a hurry do the following sections might be helpful
 ## Before running
 Provided already is a [demo config](../mock_device_demo_config.json) json that will run 50 iterations of the algorithm as used in the paper with mock versions of the investigation stage steps in the 3D environment plotted below. The environment is specified to be 3D using the "ndim" field and the shape of the environment is specified using primitive shapes that are defined in [shapes.py](shapes.py). The example used in the demo combines a standard Crosstalk_box and Leakage shape (note leakage does not refer to leaky gates but refers to alterative undesired current pathways from source to drain). A 3D Crosstalk_box is the type of shape one should expect to observe for three barrier gates. A Leakage demonstrates the pruning method and would be expected if one gate was required to define the current path (like a large top gate or V_1 in the original paper).
 
