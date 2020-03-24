@@ -87,8 +87,8 @@ Distance from origin to the pinch off
 
 ## After running
 
-![](main_utils/demo_run_data/color_comp_dummy.gif)
+![](Playground/demo_run_data/color_comp_dummy.gif)
 
 After running the raw outputs of the algorithm 
 
-![](main_utils/demo_run_data/gpr_and_gpc.gif)
+![](Playground/demo_run_data/gpr_and_gpc.gif)
