@@ -1,8 +1,8 @@
 # Quantum device tuning via hypersurface sampling
 
-The quantum devices used to implement spin qubits in semiconductors can be challenging to tune and charicterise. Often the best aproaches to tuning such devices is manual tuning or a simple huristic algorithm which is not flexible across devices. This repository contains the statistical tuning approach detailed in https://arxiv.org/abs/2001.02589 with some additional functionallity. This approach is promising as it make few assumptions about the device being tuned and hence can be applied to many systems without alteration.
+The quantum devices used to implement spin qubits in semiconductors can be challenging to tune and characterise. Often the best approaches to tuning such devices is manual tuning or a simple heuristic algorithm which is not flexible across devices. This repository contains the statistical tuning approach detailed in https://arxiv.org/abs/2001.02589 with some additional functionality. This approach is promising as it make few assumptions about the device being tuned and hence can be applied to many systems without alteration.
 
-## Dependancies
+## Dependencies
 The required packages required to run the algorithm are:
 ```
 scikit_image
@@ -15,7 +15,7 @@ pyDOE
 skimage
 ```
 ## Using the algorithm
-Using the algorithm varies depending on what measurment software you use in your lab or what you want to achieve. Specififically if your lab utilises pygor then you should call a different function to initiate the tuning. If you are unable to access a lab then you can still create a virtual enviroment to test the algorithm in using the Playground module. Bellow is documentation detailing how to run the algorithm for each of these situations.
+Using the algorithm varies depending on what measurement software you use in your lab or what you want to achieve. Specifically if your lab utilises pygor then you should call a different function to initiate the tuning. If you are unable to access a lab then you can still create a virtual environment to test the algorithm in using the Playground module. Below is documentation detailing how to run the algorithm for each of these situations.
 ### Without pygor
 To use the algorithm without pygor you must create the following:
 - jump
@@ -24,7 +24,7 @@ To use the algorithm without pygor you must create the following:
 - config_file
 
 <ins>jump:</ins>
-jump should be a function that takes an array of values and sets them to the device. It should also accept a flag that details whether the investiagation gates (typically plunger gates) should be used. Below is an example of how jump should be defined for a 5 gate device with 2 investigation (in this case plunger) gates.
+Jump should be a function that takes an array of values and sets them to the device. It should also accept a flag that details whether the investigation gates (typically plunger gates) should be used. Below is an example of how jump should be defined for a 5 gate device with 2 investigation (in this case plunger) gates.
 ```python
 def jump(params,inv=False):
   if inv:
@@ -41,7 +41,7 @@ def jump(params,inv=False):
 measure should be a function that returns the measured current on the device.
 ```python
 def measure():
-  current = get_value_from_daq() #recieve a single current measurement from the daq
+  current = get_value_from_daq() #receive a single current measurement from the daq
   return current
 ```
 <ins>check:</ins>
@@ -55,7 +55,7 @@ def check():
   return dac_state
 ```
 <ins>config_file:</ins>
-config_file should be a string that specifies the file path of a .json file containing a json opject that specifies the desired settings the user wants to use for tuning. An example string would be "demo_config.json". For information on what the config file should contain see the json config section.
+config_file should be a string that specifies the file path of a .json file containing a json object that specifies the desired settings the user wants to use for tuning. An example string would be "demo_config.json". For information on what the config file should contain see the json config section.
 
 #### How to run
 To run tuning without pygor once the above has been defined call the following:
@@ -67,20 +67,20 @@ AutoDot.tune.tune_from_file(jump,measure,check,config_file)
 To use the algorithm without pygor you must create the following:
 
 <ins>config_file:</ins>
-config_file should be a string that specifies the file path of a .json file containing a json opject that specifies the desired settings the user wants to use for tuning. An example string would be "demo_config.json". For information on what the config file should contain see the json config section. Additional fields are required to specify pygor location and settup.
+config_file should be a string that specifies the file path of a .json file containing a json object that specifies the desired settings the user wants to use for tuning. An example string would be "demo_config.json". For information on what the config file should contain see the json config section. Additional fields are required to specify pygor location and setup.
 #### How to run
 To run tuning with pygor once the above has been defined call the following:
 ```python
 import AutoDot
 AutoDot.tune.tune_with_pygor_from_file(config_file)
 ```
-### With playground (enviroment)
+### With playground (environment)
 To use the algorithm using the playground you must create the following:
 
 <ins>config_file:</ins>
-config_file should be a string that specifies the file path of a .json file containing a json opject that specifies the desired settings the user wants to use for tuning. An example string would be "demo_config.json". 
+config_file should be a string that specifies the file path of a .json file containing a json object that specifies the desired settings the user wants to use for tuning. An example string would be "demo_config.json". 
 
-Note in the config you must supply the field "playground" then in this field you must specify the basic shapes you want to build your enviroment out of. A [demo config file](mock_device_demo_config.json) for the playground is provided and a README detailing expected outputs can be found here.
+The config you must supply the field "playground" then in this field you must specify the basic shapes you want to build your environment out of. Provided is a [demo config file](mock_device_demo_config.json) and a [README](Playground/README.md) detailing how it works and what a typical run looks like.
 
 #### How to run
 To run tuning with pygor once the above has been defined call the following:
@@ -90,7 +90,7 @@ AutoDot.tune.tune_with_playground_from_file(config_file)
 ```
 
 ## Config structure
-Here is an [example config file](demo_config.json) containing all the relevent fields and below is a dicussion about each fields function
+Here is an [example config file](demo_config.json) containing all the relevant fields and below is a discussion about each fields function
 ```
 "path_to_pygor":"/path_to/pygor/package"
 ```
@@ -122,4 +122,4 @@ Value(s) to set the bias DAC channel(s) to. (only required if using pygor)
 ```
 "save_dir":"save_file_name"
 ```
-Relitive path to save tuning data in.
+Relative path to save tuning data in.
