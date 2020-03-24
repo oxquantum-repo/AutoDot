@@ -5,7 +5,7 @@ The quantum devices used to implement spin qubits in semiconductors can be chall
 ## Dependencies
 The required packages required to run the algorithm are:
 ```
-scikit_image
+scikit-image
 scipy
 numpy
 matplotlib
