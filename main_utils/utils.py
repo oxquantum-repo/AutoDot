@@ -22,7 +22,7 @@ def plot_conditional_idx_improvment(cond_idx, config,cond_count=2,save=True):
     for i in range(len(found)):
         count[i] = np.average(found[:i])
         
-    plt.plot(count)
+    plt.plot(np.arange(len(count)),count)
     plt.xlabel("Iteration")
     plt.ylabel("Empirical probability of conditional idx reaching %i"%cond_count)
     
