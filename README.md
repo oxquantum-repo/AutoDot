@@ -60,8 +60,8 @@ config_file should be a string that specifies the file path of a .json file cont
 ### How to run
 To run tuning without pygor once the above has been defined call the following:
 ```python
-import AutoDot
-AutoDot.tune.tune_from_file(jump,measure,check,config_file)
+from AutoDot.tune import tune_from_file
+tune_from_file(jump,measure,check,config_file)
 ```
 ## With pygor
 To use the algorithm without pygor you must create the following:
@@ -71,8 +71,8 @@ config_file should be a string that specifies the file path of a .json file cont
 ### How to run
 To run tuning with pygor once the above has been defined call the following:
 ```python
-import AutoDot
-AutoDot.tune.tune_with_pygor_from_file(config_file)
+from AutoDot.tune import tune_with_pygor_from_file
+tune_with_pygor_from_file(config_file)
 ```
 ## With playground (environment)
 To use the algorithm using the playground you must create the following:
@@ -85,8 +85,8 @@ The config you must supply the field "playground" then in this field you must sp
 ### How to run
 To run tuning with pygor once the above has been defined call the following:
 ```python
-import AutoDot
-AutoDot.tune.tune_with_playground_from_file(config_file)
+from AutoDot.tune import tune_with_playground_from_file
+tune_with_playground_from_file(config_file)
 ```
 
 # Config structure
