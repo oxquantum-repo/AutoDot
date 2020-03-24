@@ -2,6 +2,17 @@
 ## Before running
 Provided already is a [demo config](../mock_device_demo_config.json) json that will run 50 iterations of the algorithm as used in the paper with mock versions of the investigation stage steps in the 3D enviroment plotted below. The enviroment is specified to be 3D using the "ndim" field and the shape of the enviroment is specified using primitive shapes that are defined in [shapes.py](shapes.py). The example used in the demo combines a standard Crosstalk_box and Leakage shape (note leakage does not refer to leaky gates but refers to alteritive undesired current pathways from source to drain). A 3D Crosstalk_box is the type of shape one should expect to observe for three barrier gates. A Leakage demonstrates the pruning method and would be expected if one gate was required to define the current path (like a large top gate or V_1 in the original paper).
 
+The distribution of desired features can also be controlled by using the config. In the supplied demo the "investigation" feild contains the following:
+```
+"diag_trace":{
+	    "func":"mock_measurement",
+	    "condition":"mock_peak_check",
+	    "a":[0,0],
+	    "b":[-1000,-1000],
+	    "verbose":true},
+```
+feilds "a" and "b" define a box in gates 2 and 3 inside of which [mock_peak_check](../Investigation/condition_functions.py#L15) will return true. For [mock_score_func](../Investigation/condition_functions.py#L34) a euclidian distance to "target" is used to define a score. Custom condition functions and measureemnt functions can be created by adding to [condition_functions.py](../Investigation/condition_functions.py) and [measurement_functions.py](../Investigation/measurement_functions.py). To see the configuration of a real experiments investiagation stage see [pygor_demo_config.json](../pygor_demo_config.json).
+
 If the "plot" flag in "playground" is set to True the algorithm will first attempt to treat the enviroment as a 3D space and extract an isosurface (note this could not be done on a real device due to the time required to measure such a plot):
 
 
