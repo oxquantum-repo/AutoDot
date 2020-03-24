@@ -78,11 +78,10 @@ AutoDot.tune.tune_with_pygor_from_file(config_file)
 To use the algorithm using the playground you must create the following:
 
 <ins>config_file:</ins>
-config_file should be a string that specifies the file path of a .json file containing a json opject that specifies the desired settings the user wants to use for tuning. An example string would be "demo_config.json".
+config_file should be a string that specifies the file path of a .json file containing a json opject that specifies the desired settings the user wants to use for tuning. An example string would be "demo_config.json". 
 
-Provided already is a [demo config](mock_device_demo_config.json) json that will run 50 iterations of the algorithm as used in the paper with mock versions of the investigation stage steps in the 3D enviroment plotted below (Three gates with crosstalk and alternat path defined by gate 1). ![](main_utils/demo_run_data/color_comp_dummy.gif)
+Note in the config you must supply the field "playground" then in this field you must specify the basic shapes you want to build your enviroment out of. A [demo config file](mock_device_demo_config.json) for the playground is provided and a README detailing expected outputs can be found here.
 
-It then outputs the resulting samples, gausian process prediction of the hypersurface, and gaussian process prediction of if 'mock_peak_check' returns true. An example of this plot is plotted bellow. ![](main_utils/demo_run_data/gpr_and_gpc.gif)
 #### How to run
 To run tuning with pygor once the above has been defined call the following:
 ```python
