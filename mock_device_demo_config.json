@@ -3,13 +3,11 @@
 	"shapes":{
 		"Crosstalk_box":{},
 		"Leakage":{}},
-	"ndim":3},
+	"ndim":3,
+        "plot":true},
 
     "plunger_gates": [1,2],
-    "save_dir":"dummy_test/",
-    "plot":true,
-
-    "pause":0.2,
+    "save_dir":"mock_device_demo/",
 
     "investigation":{
 	"measurement_seq":["diag_trace","2d_lowres","2d_highres"],
