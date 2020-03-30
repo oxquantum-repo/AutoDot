@@ -1,4 +1,4 @@
-# Config file structure
+# Config files
 
 Multiple config files are supplied in this repository for users to addapt to their own problems. Each provided config is supplied with it's own documentation detailing what the fields do.
 
