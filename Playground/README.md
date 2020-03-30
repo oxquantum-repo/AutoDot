@@ -30,7 +30,14 @@ tune_with_playground_from_file('AutoDot/mock_device_demo_config.json')
 To run (if "plot":true you must close plots manually)
 
 Outputs:
-Plots (gifs) are saved in the folder 'mock_device_demo'
+Plots (gifs) are saved in the folder 'mock_device_demo' and raw data it saved in a pickle file called 'tuning.pkl'. To open and read the pickle file run the following.
+
+```python
+import pickle
+with open("mock_device_demo/tuning.pkl","rb") as handle:
+	data_dict = pickle.load(handle)
+```
+data_dict then contains all important output, for example ```data_dict['vols_pinchoff']``` contains a list of all observered pinch off values and boundary points.
 
 If you're not in a hurry do the following sections might be helpful
 ## Before running
