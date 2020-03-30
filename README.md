@@ -61,7 +61,7 @@ def check(inv=True):
   return dac_state
 ```
 <ins>config_file:</ins>
-config_file should be a string that specifies the file path of a .json file containing a json object that specifies the desired settings the user wants to use for tuning. An example string would be "demo_config.json". For information on what the config file should contain see the json config section.
+config_file should be a string that specifies the file path of a .json file containing a json object that specifies the desired settings the user wants to use for tuning. An example string would be "config.json". For information on what the config file should contain see the json config section.
 
 ### How to run
 To run tuning without pygor once the above has been defined call the following:
@@ -73,7 +73,7 @@ tune_from_file(jump,measure,check,config_file)
 To use the algorithm without pygor you must create the following:
 
 <ins>config_file:</ins>
-config_file should be a string that specifies the file path of a .json file containing a json object that specifies the desired settings the user wants to use for tuning. An example string would be "demo_config.json". For information on what the config file should contain see the json config section. Additional fields are required to specify pygor location and setup.
+config_file should be a string that specifies the file path of a .json file containing a json object that specifies the desired settings the user wants to use for tuning. An example string would be "config.json". For information on what the config file should contain see the json config section. Additional fields are required to specify pygor location and setup.
 ### How to run
 To run tuning with pygor once the above has been defined call the following:
 ```python
@@ -84,7 +84,7 @@ tune_with_pygor_from_file(config_file)
 To use the algorithm using the playground you must create the following:
 
 <ins>config_file:</ins>
-config_file should be a string that specifies the file path of a .json file containing a json object that specifies the desired settings the user wants to use for tuning. An example string would be "demo_config.json". 
+config_file should be a string that specifies the file path of a .json file containing a json object that specifies the desired settings the user wants to use for tuning. An example string would be "config.json". 
 
 The config you must supply the field "playground" then in this field you must specify the basic shapes you want to build your environment out of. Provided is a [demo config file](mock_device_demo_config.json) and a [README](Playground/README.md) detailing how it works and what a typical run looks like.
 
