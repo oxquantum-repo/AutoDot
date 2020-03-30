@@ -25,7 +25,7 @@ To use the algorithm without pygor you must create the following:
 - config_file
 
 <ins>jump:</ins>
-Jump should be a function that takes an array of values and sets them to the device. It should also accept a flag that details whether the investigation gates (typically plunger gates) should be used. Below is an example of how jump should be defined for a 5 gate device with 2 investigation (in this case plunger) gates.
+Jump should be a function that takes an array of values and sets them to the device. It should also accept a flag that details whether the investigation gates (typically plunger gates) should be used. Below is an **example** of how jump **could** be defined for a 5 gate device with 2 investigation (in this case plunger) gates.
 ```python
 def jump(params,inv=False):
   if inv:
