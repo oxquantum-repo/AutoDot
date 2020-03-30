@@ -24,8 +24,10 @@ To use the algorithm without pygor you must create the following:
 - check
 - config_file
 
+Below is an **EXAMPLE** of how jump, check, and measure **COULD** be defined for a 5 gate device with 2 investigation (in this case plunger) gates.
+
 <ins>jump:</ins>
-Jump should be a function that takes an array of values and sets them to the device. It should also accept a flag that details whether the investigation gates (typically plunger gates) should be used. Below is an **example** of how jump **could** be defined for a 5 gate device with 2 investigation (in this case plunger) gates.
+Jump should be a function that takes an array of values and sets them to the device. It should also accept a flag that details whether the investigation gates (typically plunger gates) should be used. 
 ```python
 def jump(params,inv=False):
   if inv:
@@ -48,8 +50,11 @@ def measure():
 <ins>check:</ins>
 check should be a function that returns the state of all relevant dac channels.
 ```python
-def check():
-  labels = ["dac3","dac4","dac5","dac6","dac7"] #all gates
+def check(inv=True):
+  if inv:
+    labels = ["dac4","dac6"] #plunger gates
+  else:
+    labels = ["dac3","dac4","dac5","dac6","dac7"] #all gates
   dac_state = [None]*len(labels)
   for i in range(len(labels)):
     dac_state[i] = get_current_dac_state(labels[i]) #function that takes dac key and returns state that channel is in
