@@ -13,7 +13,6 @@ matplotlib
 GPy
 mkl
 pyDOE
-skimage
 ```
 # Using the algorithm
 Using the algorithm varies depending on what measurement software you use in your lab or what you want to achieve. Specifically if your lab utilises pygor then you should call a different function to initiate the tuning. If you are unable to access a lab then you can still create a virtual environment to test the algorithm in using the Playground module. Below is documentation detailing how to run the algorithm for each of these situations.
