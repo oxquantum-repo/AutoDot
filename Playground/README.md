@@ -29,7 +29,7 @@ tune_with_playground_from_file('AutoDot/mock_device_demo_config.json')
 ```
 To run (if "plot":true you must close plots manually)
 
-Outputs:
+<ins>Outputs:</ins>
 Plots (gifs) are saved in the folder 'mock_device_demo' and raw data it saved in a pickle file called 'tuning.pkl'. To open and read the pickle file run the following.
 
 ```python
