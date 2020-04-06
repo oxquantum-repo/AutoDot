@@ -15,7 +15,7 @@ from pathlib import Path
 
 
 def plot_conditional_idx_improvment(cond_idx, config,cond_count=2,save=True):
-    
+    plt.figure()
     found = (np.array(cond_idx)>=cond_count).astype(np.float)
     
     count = [None]*len(found)
@@ -28,6 +28,7 @@ def plot_conditional_idx_improvment(cond_idx, config,cond_count=2,save=True):
     
     if save: plt.savefig(config['save_dir']+'improvment.png')
 
+    plt.ion()
     plt.show()
 
 

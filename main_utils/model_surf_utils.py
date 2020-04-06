@@ -16,8 +16,9 @@ def show_dummy_device(device,configs,save=True):
     ax = utils.plot_volume(dev_vol,conf_g['lb_box'],conf_g['ub_box'],conf_g['ub_box'],100)
     
     if save: utils.rotate_save(ax,configs['save_dir']+'dummy_surf/')
-    plt.show()
-    
+    plt.ion()
+    plt.show(block = False)
+    plt.pause(10)
     
     
 def show_gpr_gpc(gpr,configs,points,condidx,origin,gpc=None,save=True):
@@ -29,6 +30,8 @@ def show_gpr_gpc(gpr,configs,points,condidx,origin,gpc=None,save=True):
     ax = utils.plot_3d_scatter(points,condidx=condidx,ax=ax)
     
     if save: utils.rotate_save(ax,configs['save_dir']+'gpr_surf/')
-    plt.show()
+    plt.ion()
+    plt.show(block = False)
+    plt.pause(10)
 
 

@@ -29,8 +29,15 @@ tune_with_playground_from_file('AutoDot/mock_device_demo_config.json')
 ```
 To run (if "plot":true you must close plots manually)
 
-Outputs:
-Plots (gifs) are saved in the folder 'mock_device_demo'
+<ins>Outputs:</ins>
+Plots (gifs) are saved in the folder 'mock_device_demo' and raw data it saved in a pickle file called 'tuning.pkl'. To open and read the pickle file run the following.
+
+```python
+import pickle
+with open("mock_device_demo/tuning.pkl","rb") as handle:
+	data_dict = pickle.load(handle)
+```
+data_dict then contains all important output, for example ```data_dict['vols_pinchoff']``` contains a list of all observered pinch off values and boundary points.
 
 If you're not in a hurry do the following sections might be helpful
 ## Before running
@@ -140,7 +147,7 @@ Distance from origin to the pinch off
 ## After running
 All results are saved in the save directory ("save_dir") in a file called tuning.pkl. The saved fields are specified in "track". Useful fields that you might want to look at are "vols_pinchoff" (list of all pinch-off's or points where the algorithm hit the boundary), "detected" (if the point is a pinch-off or boundary point), "conditional_idx" (denotes how successful a given iteration was at passing characterisation tests), "r_vals" (distance from origin to the pinch-off/boundary), and "extra_measure" (contains list of dicts that contain all information gathered by the investigation stage including stability diagrams if running on a real device). 
 
-If the "plot" flag in "playground" is set to True the algorithm will finally attempt to treat fit Gaussian process prediction of the hypersurface (gpr) as a 3D space and extract an isosurface. It will also plot the Gaussian process classification (gpc) as the colour map of the gpr. The point used for training of these models will also be plotted:
+If the "plot" flag in "playground" is set to True the algorithm will finally attempt to treat the fit Gaussian process prediction of the hypersurface (gpr) as a 3D space and extract an isosurface. It will also plot the Gaussian process classification (gpc) as the colour map of the gpr. The points used for training of these models will also be plotted:
 
 ![](demo_run_data/gpr_and_gpc.gif)
 
