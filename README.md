@@ -69,7 +69,7 @@ from AutoDot.tune import tune_from_file
 tune_from_file(jump,measure,check,config_file)
 ```
 ## With pygor
-To use the algorithm without pygor you must create the following:
+To use the algorithm with pygor you must create the following:
 
 <ins>config_file:</ins>
 config_file should be a string that specifies the file path of a .json file containing a json object that specifies the desired settings the user wants to use for tuning. An example string would be "config.json". For information on what the config file should contain see the json config section. Additional fields are required to specify pygor location and setup.
