@@ -85,6 +85,9 @@ class Tester(object):
         voltages_all, measurement_all, pinchoff_idx, t_firstjump = self.measure_until_poff(np.array(origin), unit_vector, r_est, d_r=d_r)
         if self.logging:
             self.logger.append({'vols':voltages_all, 'val':measurement_all, 'pinchoff_idx': pinchoff_idx})
+            
+            
+        trace_data = zip(voltages_all,measurement_all)
 
         # note: pinch-off = -1 when pinch-off is not detected
         found = pinchoff_idx != -1
@@ -92,7 +95,7 @@ class Tester(object):
             raise RuntimeError('Voltages out of bound')
         voltages_pinchoff = voltages_all[pinchoff_idx]
         r = L2_norm(voltages_all[pinchoff_idx]-origin)
-        return r, voltages_pinchoff, found, t_firstjump
+        return r, voltages_pinchoff, found, t_firstjump, trace_data
 
     def measure_until_poff(self, voltages, unit_vector, dist_est=None, d_r=None, max_r = np.infty):
         d_r = d_r or self.d_r # d_r = self.d_r if d_r is None

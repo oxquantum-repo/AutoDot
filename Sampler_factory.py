@@ -85,8 +85,8 @@ class Paper_sampler(Base_Sampler):
         self.sampler_hook = None #bodge
         
         self.t.add(samples=None,point_selected=None,boundary_points=[],
-                   vols_poff=[],detected=[],vols_poff_axes=[],poff=[]
-                   ,all_v=[],vols_pinchoff=[],d_vec=[],poff_vec=[],meas_each_axis=[],vols_each_axis=[],extra_measure=[],
+                   vols_poff=[],detected=[],vols_poff_axes=[],poff=[],poff_traces=[],
+                   all_v=[],vols_pinchoff=[],d_vec=[],poff_vec=[],meas_each_axis=[],vols_each_axis=[],extra_measure=[],
                    vols_pinchoff_axes=[],vols_detected_axes=[],changed_origin=[],conditional_idx=[],r_vals=[])
 
         
@@ -126,9 +126,9 @@ class Paper_sampler(Base_Sampler):
                                              'directions', 'n_part', 'sigma', 'max_steps'),sampler_hook=self.sampler_hook) if do_gpr_p1 else None
 
          
-        r, vols_pinchoff, found, t_firstjump = self.tester.get_r(u, origin=self.t['origin'], r_est=r_est)
+        r, vols_pinchoff, found, t_firstjump, poff_trace = self.tester.get_r(u, origin=self.t['origin'], r_est=r_est)
         self.timer.logtime()
-        self.t.app(r_vals=r,vols_pinchoff=vols_pinchoff, detected=found)
+        self.t.app(r_vals=r,vols_pinchoff=vols_pinchoff, detected=found, poff_traces=poff_trace)
         
         prune_results = self.tester.measure_dvec(vols_pinchoff+(self.t['step_back']*np.array(self.t['directions']))) if do_pruning else [None]*4
         self.timer.logtime()
