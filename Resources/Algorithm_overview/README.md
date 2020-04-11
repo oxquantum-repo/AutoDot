@@ -1,7 +1,7 @@
 # Algorithm overview
 This file describes an animation of the algorithm that illustrates all its components. A '.mp4' animation containing 15 iterations of the algorithm (as detailed in our [paper](https://arxiv.org/abs/2001.02589)) in a 2D gate volatge space can be found [here](movie.mp4). Below we explain these iterations in detail.
 
-## Initialisation
+## First few iterations
 When the algorithm is first started, for the first few iterations it performs initialisation. In the provided animation initialisation lasts 3 iterations and in the paper initialisation stage lasted 30 iterations.
 
 For the first few iterations, given an origin of the gate voltage space, candidate unit vectors are selected uniformly in angle. The pinch off is then found by moving to the origin and searching along the direction corresponding to the selected unit vector. This search ends if the current falls below a specific threshold or if the bounding box is hit (in this case -2 V for each gate voltage). When the pinch off is detected, a local search for Coulomb peaks is performed. The algorithm then starts pruning unpromising regions of the gate voltage space; this is done by moving closer to the origin in the direction of the unit vector (+100 mV in this example) and taking current traces parallel to the gate axes. During this procedure the pinch off locations (or if the search hit the bounding box) are logged.
@@ -15,8 +15,8 @@ At the beginning of this iteration the origin is updated, following the results 
 
 ![](iteration2.gif)
 
-## Sampling
-When the initialisation is over, the algorithm moves to the sampling stage. We will show 12 iterations of this stage (in a standard run of the algorithm approximately 470 iterations are required).
+## After the first few iterations
+We will show 12 iterations of this stage (in a standard run of the algorithm approximately 470 iterations are required).
 
 A Gaussian process regression model (hypersurface model) is used to predict the distance from the origin to the pinch off location (or bounding box) given a candidate unit vector. This model effectively aims to predict the hypersurface coordinates. A candidate unit vector is selected by simulating particles undergoing Brownian motion within the predicted hypersurface. Whenever one of these particles hits the hysurface, the corresponding location is added to a list of candidate locations.
 
