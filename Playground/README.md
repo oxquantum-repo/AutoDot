@@ -3,7 +3,7 @@
 ## How to run from scratch
 If you're in a hurry do the following to run the demo:
 
-**NOTE: DUE TO MULTIPROCESSING PACKAGE THE FOLLOWING MUST BE PERFORMED ON A UNIX/LINUX OPERATING SYSTEM**
+**NOTE: DUE TO MULTIPROCESSING PACKAGE THE CURRENT IMPLEMENTATION ONLY WORKS ON UNIX/LINUX OPERATING SYSTEMS [TO RUN ON WINDOWS FOLLOW THIS GUIDE](../Resources/Running_on_windows.md)**
 
 ```
 conda create --name demo_test python=3.6
