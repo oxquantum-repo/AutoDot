@@ -1,7 +1,7 @@
 # Quantum device tuning via hypersurface sampling
 **NOTE: DUE TO MULTIPROCESSING PACKAGE THE CURRENT IMPLEMENTATION ONLY WORKS ON UNIX/LINUX OPERATING SYSTEMS [TO RUN ON WINDOWS FOLLOW THIS GUIDE](Resources/Running_on_windows.md)**
 
-The quantum devices used to implement spin qubits in semiconductors can be challenging to tune and characterise. Often the best approaches to tuning such devices is manual tuning or a simple heuristic algorithm which is not flexible across devices. This repository contains the statistical tuning approach detailed in https://arxiv.org/abs/2001.02589 with some additional functionality. This approach is promising as it make few assumptions about the device being tuned and hence can be applied to many systems without alteration. **For instructions on how to run a simple fake enviroment to see how the algorithm works see [this README.md](Playground/README.md)**
+The quantum devices used to implement spin qubits in semiconductors can be challenging to tune and characterise. Often the best approaches to tuning such devices is manual tuning or a simple heuristic algorithm which is not flexible across devices. This repository contains the statistical tuning approach detailed in https://arxiv.org/abs/2001.02589 with some additional functionality. This approach is promising as it make few assumptions about the device being tuned and hence can be applied to many systems without alteration. **For instructions on how to run a simple fake environment to see how the algorithm works see [this README.md](Playground/README.md)**
 
 ## Dependencies
 The required packages required to run the algorithm are:
