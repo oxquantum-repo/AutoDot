@@ -26,6 +26,12 @@ To activate conda comand.
 ```
 git clone https://github.com/oxquantum-repo/AutoDot.git
 ```
-This will download a copy of the current repo. After this subsytem setup is complete.
+This will download a copy of the current repo. After this subsytem setup is complete and you can continue to follow either the [quick enviroment guide](../Playground/README.md) or the [main documentation](../README.md).
 
 ## From zip
+Download the AutoDot folder and unzip it into your windows downloads folder.
+
+```
+cp -r /mnt/c/Users/<YOUR USERNAME HERE>/Downloads/AutoDot ~/AutoDot 
+```
+Please replace <**YOUR USERNAME HERE**> with your windows username. This will copy and paste over the AutoDot folder in your downloads folder to the windows subsytem. After this subsytem setup is complete and you can continue to follow either the [quick enviroment guide](../Playground/README.md) or the [main documentation](../README.md).
