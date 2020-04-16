@@ -9,7 +9,7 @@ If you're in a hurry do the following to run the demo:
 conda create --name demo_test python=3.6
 conda activate demo_test
 ```
-To create and activate a new enviroment
+To create and activate a new enviroment. If ```conda activate demo_test``` fails please try ```source activate demo_test```.
 
 ```
 conda install scikit-image scipy numpy matplotlib 
