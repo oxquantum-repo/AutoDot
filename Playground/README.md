@@ -9,7 +9,7 @@ If you're in a hurry do the following to run the demo:
 conda create --name demo_test python=3.6
 conda activate demo_test
 ```
-To create and activate a new enviroment. If ```conda activate demo_test``` fails please try ```source activate demo_test```.
+To create and activate a new environment. If ```conda activate demo_test``` fails please try ```source activate demo_test```.
 
 ```
 conda install scikit-image scipy numpy matplotlib 
@@ -37,7 +37,7 @@ import pickle
 with open("mock_device_demo/tuning.pkl","rb") as handle:
 	data_dict = pickle.load(handle)
 ```
-data_dict then contains all important output, for example ```data_dict['vols_pinchoff']``` contains a list of all observered pinch off values and boundary points.
+data_dict then contains all important output, for example ```data_dict['vols_pinchoff']``` contains a list of all observed pinch off values and boundary points.
 
 If you're not in a hurry do the following sections might be helpful
 ## Before running
