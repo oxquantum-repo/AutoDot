@@ -52,7 +52,7 @@ The distribution of desired features can also be controlled by using the config.
 	    "b":[-1000,-1000],
 	    "verbose":true},
 ```
-Fields "a" and "b" define a box in gates 2 and 3 inside of which [mock_peak_check](../Investigation/condition_functions.py#L15) will return true. For [mock_score_func](../Investigation/condition_functions.py#L34) a Euclidian distance to "target" is used to define a score. Custom condition functions and measurement functions can be created by adding to [condition_functions.py](../Investigation/condition_functions.py) and [measurement_functions.py](../Investigation/measurement_functions.py). To see the configuration of a real experiments investigation stage see [pygor_demo_config.json](../pygor_demo_config.json).
+Fields "a" and "b" define a box in gates 2 and 3 inside of which [mock_peak_check](../Investigation/condition_functions.py#L15) will return true. For [mock_score_func](../Investigation/condition_functions.py#L34) a Euclidian distance to "target" is used to define a score. Custom condition functions and measurement functions can be created by adding to [condition_functions.py](../Investigation/condition_functions.py) and [measurement_functions.py](../Investigation/measurement_functions.py). To see the configuration of a real experiments investigation stage see [pygor_demo_config.json](../Resources/pygor_demo_config.json).
 
 If the "plot" flag in "playground" is set to True the algorithm will first attempt to treat the environment as a 3D space and extract an isosurface (note this could not be done on a real device due to the time required to measure such a plot):
 
