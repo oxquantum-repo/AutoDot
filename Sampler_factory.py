@@ -160,7 +160,7 @@ class Paper_sampler(Base_Sampler):
      
         return self.t.getd(*self.t['verbose'])
         
-def select_point(hypersurface, selection_model, origin, boundary_points, vols_pinchoff, directions, use_selection=True, estimate_r=True):
+def select_point(hypersurface, selection_model, origin, boundary_points, vols_pinchoff, directions, gpr_in_use=True, gpc_in_use=True):
     """selects a point to investigate using thompson sampling, uniform sampling or random angles
     depending on use_selection flag or is no samples are present
     Args:
@@ -176,7 +176,7 @@ def select_point(hypersurface, selection_model, origin, boundary_points, vols_pi
     
     boundary_points = [] if boundary_points is None else boundary_points
     
-    if len(boundary_points) > 0 and use_selection:
+    if len(boundary_points) > 0 and gpc_in_use:
         points_candidate = rw.project_crosses_to_boundary(boundary_points, hypersurface, origin)
         print("points_candidate", points_candidate)
         v = choose_next(points_candidate, vols_pinchoff, selection_model, d_tooclose = 20.)
@@ -191,7 +191,7 @@ def select_point(hypersurface, selection_model, origin, boundary_points, vols_pi
     
     r_est = np.maximum(r_est - 1.0*np.sqrt(r_std), 0.0)
     
-    return u.squeeze(), r_est.squeeze() if estimate_r else None
+    return u.squeeze(), r_est.squeeze() if gpr_in_use else None
 
 
 
@@ -309,12 +309,9 @@ def choose_next(points_candidate, points_observed, gpc_dict, d_tooclose = 100.):
 
     points_reduced = points_candidate[nottooclose]
     
-    print("points_reduced", points_reduced)
-    
     prob = predict_probs(points_reduced, gpc_dict)[0]
     p = prob / np.sum(prob)
     
-    print("p", p)
     
     idx = np.random.choice(len(points_reduced), p=p) #Thompson sampling
     point_best =  points_reduced[idx]
