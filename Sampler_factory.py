@@ -178,6 +178,7 @@ def select_point(hypersurface, selection_model, origin, boundary_points, vols_pi
     
     if len(boundary_points) > 0 and use_selection:
         points_candidate = rw.project_crosses_to_boundary(boundary_points, hypersurface, origin)
+        print("points_candidate", points_candidate)
         v = choose_next(points_candidate, vols_pinchoff, selection_model, d_tooclose = 20.)
     elif len(boundary_points) != 0:
         v = rw.pick_from_boundary_points(boundary_points)
@@ -307,9 +308,15 @@ def choose_next(points_candidate, points_observed, gpc_dict, d_tooclose = 100.):
         return None, None, None
 
     points_reduced = points_candidate[nottooclose]
+    
+    print("points_reduced", points_reduced)
+    
     prob = predict_probs(points_reduced, gpc_dict)[0]
     p = prob / np.sum(prob)
-    idx = np.random.choice(len(points_reduced), p=p) # Thompson sampling
+    
+    print("p", p)
+    
+    idx = np.random.choice(len(points_reduced), p=p) #Thompson sampling
     point_best =  points_reduced[idx]
     return point_best
 
