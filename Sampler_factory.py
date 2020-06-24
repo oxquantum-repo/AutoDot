@@ -159,6 +159,54 @@ class Paper_sampler(Base_Sampler):
         self.t.save(track=self.t['track'])
      
         return self.t.getd(*self.t['verbose'])
+    
+    
+    
+    
+class Redo_sampler(Base_Sampler):
+    
+    def __init__(self,configs, point_cloud):
+        super(Redo_sampler, self).__init__(configs)
+        
+        self.sampler_hook = None #bodge
+        
+        self.t.add(samples=None,point_selected=None,boundary_points=[],
+                   vols_poff=[],detected=[],vols_poff_axes=[],poff=[],poff_traces=[],
+                   all_v=[],vols_pinchoff=[],d_vec=[],poff_vec=[],meas_each_axis=[],vols_each_axis=[],extra_measure=[],
+                   vols_pinchoff_axes=[],vols_detected_axes=[],changed_origin=[],conditional_idx=[],r_vals=[])
+        
+        self.t.add(d_r=self.t['detector']['d_r'])#bodge
+        self.ulist = points_to_u(self.t['origin'], point_cloud)
+        
+    def do_iter(self):
+        i = self.t['iter']
+        self.timer.start()
+        
+        th_score=0.01
+        
+        #pick a uvec
+        u = self.ulist[i]
+        self.timer.logtime()
+         
+        r, vols_pinchoff, found, t_firstjump, poff_trace = self.tester.get_r(u, origin=self.t['origin'])
+        self.timer.logtime()
+        self.t.app(r_vals=r,vols_pinchoff=vols_pinchoff, detected=found, poff_traces=poff_trace)
+        
+        self.timer.logtime()
+        
+        em_results = self.t['do_extra_meas'](vols_pinchoff, th_score) if found else {'conditional_idx':0}
+        self.timer.logtime()
+        self.t.app(extra_measure=em_results), self.t.app(conditional_idx=em_results['conditional_idx'])
+        
+        self.timer.logtime()
+        self.timer.logtime()
+            
+        self.timer.stop()
+        self.t['times']=self.timer.times_list
+        self.t['iter'] += 1
+        self.t.save(track=self.t['track'])
+        return self.t.getd(*self.t['verbose'])
+    
         
 def select_point(hypersurface, selection_model, origin, boundary_points, vols_pinchoff, directions, gpr_in_use=True, gpc_in_use=True):
     """selects a point to investigate using thompson sampling, uniform sampling or random angles
@@ -352,4 +400,8 @@ def get_real_bounds(origin,bound):
     real_b['real_ub'] = np.maximum(origin,bound)
     real_b['real_lb'] = np.minimum(origin,bound)
     return real_b
+
+def points_to_u(origin, points):
+    u_dirs = np.array(points) - np.array(origin)[np.newaxis,:]
+    return u_dirs/np.linalg.norm(u_dirs,axis=-1)[:,np.newaxis]
 

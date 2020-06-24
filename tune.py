@@ -6,7 +6,7 @@ Created on Tue Nov 12 22:10:26 2019
 """
 import sys
 import json
-from .Sampler_factory import Paper_sampler
+from .Sampler_factory import Paper_sampler, Redo_sampler
 from .Investigation.Investigation_factory import Investigation_stage
 from .main_utils.utils import Timer, plot_conditional_idx_improvment
 from .main_utils.model_surf_utils import show_gpr_gpc, show_dummy_device
@@ -67,7 +67,7 @@ def tune_with_pygor_from_file(config_file):
     inv_timer = Timer()
     investigation_stage = Investigation_stage(jump,measure,check,configs['investigation'],inv_timer)
         
-    tune(jump,measure,investigation_stage,configs)
+    return tune(jump,measure,investigation_stage,configs)
     
     
     
@@ -110,6 +110,67 @@ def tune_with_playground_from_file(config_file):
         plot_conditional_idx_improvment(sampler.t['conditional_idx'],configs)
     
     return results,sampler
+
+
+
+
+def redo_with_pygor_from_file(config_file, pointcloud):
+    with open(config_file) as f:
+        configs = json.load(f)
+        
+    pygor_path = configs.get('path_to_pygor',None)
+    if pygor_path is not None:
+        sys.path.insert(0,pygor_path)
+    import Pygor
+    pygor = Pygor.Experiment(xmlip=configs.get('ip',None))
+        
+    gates = configs['gates']
+    plunger_gates = configs['plunger_gates']
+    
+    chan_no = configs['chan_no']
+    
+    grouped = any(isinstance(i, list) for i in gates)
+    
+    if grouped:
+        def jump(params,plungers=False):
+            
+            if plungers:
+                labels = plunger_gates
+            else:
+                labels = gates
+            
+            for i,gate_group in enumerate(labels):
+                pygor.setvals(gate_group,[params[i]]*len(gate_group))
+                
+            return params
+    else:
+        def jump(params,plungers=False):
+            #print(params)
+            if plungers:
+                labels = plunger_gates
+            else:
+                labels = gates
+            pygor.setvals(labels,params)
+            return params
+    def measure():
+        cvl = pygor.do0d()[chan_no][0]
+        return cvl
+    def check():
+        return pygor.getvals(plunger_gates)
+    
+    assert len(gates) == len(configs['general']['origin'])
+        
+    inv_timer = Timer()
+    investigation_stage = Investigation_stage(jump,measure,check,configs['investigation'],inv_timer)
+        
+    return redo(jump,measure,investigation_stage,configs)
+
+
+
+
+
+
+
     
     
     
@@ -127,10 +188,14 @@ def tune_from_file(jump,measure,check,config_file):
     
     
     
-    
-    
-    
-    
+def redo_from_file(jump,measure,check,config_file,pointcloud):
+    with open(config_file) as f:
+        configs = json.load(f)
+        
+    inv_timer = Timer()
+    investigation_stage = Investigation_stage(jump,measure,check,configs['investigation'],inv_timer)
+    results,sampler = redo(jump,measure,investigation_stage,configs,pointcloud)
+    return results,sampler
     
 
     
@@ -170,6 +235,21 @@ def tune_origin_variable(jump,measure,par_invstage,child_invstage,par_configs,ch
                 child_ps_list+=[Paper_sampler(child_configs_new)]
             
         ps,par_flag = task_selector(par_ps,child_ps_list,i)
+        
+        
+        
+def redo(jump, measure, investigation_stage, configs, pointcloud):
+    configs['jump'] = jump
+    configs['measure'] = measure
+    configs['investigation_stage_class'] = investigation_stage
+    ps = Redo_sampler(configs, pointcloud)
+    for i in range(configs['general']['num_samples']):
+        print("============### ITERATION %i ###============"%i)
+        results = ps.do_iter()
+        for key,item in results.items():
+            print("%s:"%(key),item[-1])
+            
+    return results, ps
     
     
             
