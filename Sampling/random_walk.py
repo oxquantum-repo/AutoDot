@@ -3,6 +3,7 @@ import multiprocessing
 import time
 import numpy as np
 from collections import deque
+import warnings
 from .BO_common import lhs_hypersphere, random_hypersphere, random_hypercube
 
 class Gaussian_proposal_move(object):
@@ -132,9 +133,12 @@ class MH_MCMC_Hypersurface(multiprocessing.Process):
         if self.z.ndim != 2: raise ValueError('samples should be 2-dimensional array')
         inside = self.tester_inside(self.z) # test whether all points are inside of the surface
         
-        #print(self.z,inside)
         if not np.all(inside):
-            raise ValueError('At least one of initial points is outside of the surface.')
+            
+            #fix stray points by maping them back to the origin
+            num_outside = inside[~inside].size
+            self.z[~inside] = np.array(self.tester_inside.origin)[np.newaxis,:]
+            warnings.warn('Brownian motion: {} of the initial points is outside of the surface. Moving points to the origin'.format(num_outside))
 
         # Initial likelihood
         if self.L_current is None:
