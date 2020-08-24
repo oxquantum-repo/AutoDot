@@ -76,7 +76,7 @@
 	"n_part": 200, 
 	"sigma": 25},
 
-    "track": ["origin", "bound", "directions", "samples", "extra_measure", "d_vec","poff_vec", "meas_each_axis", "vols_each_axis", "conditional_idx","vols_pinchoff","detected","r_vals","poff_traces"],
+    "track": ["origin", "bound", "directions", "samples", "extra_measure", "d_vec","poff_vec", "meas_each_axis", "vols_each_axis", "conditional_idx","vols_pinchoff","detected","r_vals","times","poff_traces"],
     "verbose": ["conditional_idx","vols_pinchoff","detected","r_vals"]
 }
 
