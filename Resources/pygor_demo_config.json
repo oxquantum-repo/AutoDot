@@ -1,7 +1,7 @@
 {
     "path_to_pygor":"/home/mlserv/Scripts",
     "gates":["c3","c4","c5","c6","c7","c9","c10"],
-    "ip":"http://127.0.0.1:8000/RPC2"
+    "ip":"http://127.0.0.1:8000/RPC2",
     "plunger_gates":["c5","c9"],
     "bias_chans":["c1"],
     "bias_vals":[20],
