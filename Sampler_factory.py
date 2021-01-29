@@ -226,7 +226,6 @@ def select_point(hypersurface, selection_model, origin, boundary_points, vols_pi
     
     if len(boundary_points) > 0 and gpc_in_use:
         points_candidate = rw.project_crosses_to_boundary(boundary_points, hypersurface, origin)
-        print("points_candidate", points_candidate)
         v = choose_next(points_candidate, vols_pinchoff, selection_model, d_tooclose = 20.)
     elif len(boundary_points) != 0:
         v = rw.pick_from_boundary_points(boundary_points)
