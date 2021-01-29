@@ -112,6 +112,45 @@ def tune_with_playground_from_file(config_file):
     return results,sampler
 
 
+def tune_with_playground_from_file(config_file):
+    
+    with open(config_file) as f:
+        configs = json.load(f)
+        
+        
+        
+    device = build_mock_device_with_json(configs['playground'])
+    
+    if configs['playground'].get('plot',False): show_dummy_device(device,configs)
+    
+    plunger_gates = configs['plunger_gates']
+    
+    
+    def jump(params,inv=False):
+        if inv:
+            return params
+        else:
+            return device.jump(params)
+    
+    
+    measure = device.measure
+    
+    check = lambda: device.check(plunger_gates)
+    
+    inv_timer = Timer()
+    investigation_stage = Investigation_stage(jump,measure,check,configs['investigation'],inv_timer)
+        
+    results,sampler = tune(jump,measure,investigation_stage,configs)
+    
+    fields = ['vols_pinchoff','conditional_idx','origin']
+    
+    if configs['playground'].get('plot',False): 
+        show_gpr_gpc(sampler.gpr, configs, *sampler.t.get(*fields), gpc=sampler.gpc.predict_comb_prob)
+        plot_conditional_idx_improvment(sampler.t['conditional_idx'],configs)
+    
+    return results,sampler
+
+
 
 
 def redo_with_pygor_from_file(config_file, pointcloud):
@@ -209,13 +248,12 @@ def redo_with_playground_from_file(config_file,pointcloud):
     return results,sampler
 
 
-
-
-
+def tune_from_dict(jump,measure,check,configs):
+    inv_timer = Timer()
+    investigation_stage = Investigation_stage(jump,measure,check,configs['investigation'],inv_timer)
+    results,sampler = tune(jump,measure,investigation_stage,configs)
+    return results,sampler
     
-    
-    
-
 
 def tune_from_file(jump,measure,check,config_file):
     with open(config_file) as f:
