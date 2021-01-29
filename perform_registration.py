@@ -7,7 +7,7 @@ Created on Thu Jul  4 16:42:32 2019
 
 import numpy as np
 from functools import partial
-from Registration.registration_core import notranslation_affine_registration,simple_affine_registration,deformable_registration
+from .Registration.registration_core import notranslation_affine_registration,simple_affine_registration,deformable_registration
 
 
 
