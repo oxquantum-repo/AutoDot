@@ -120,7 +120,7 @@ class Paper_sampler(Base_Sampler):
         do_gpr_p1, do_gpc_p1 = (i-1>self.t['gpr_start']) and self.t['gpr_on'], (i-1>self.t['gpc_start']) and self.t['gpc_on']
         print("GPR:",do_gpr,"GPC:",do_gpc,"prune:",do_pruning,"GPR1:",do_gpr_p1,"GPC1:",do_gpc_p1,"Optim:",do_optim)
         #pick a uvec and start sampling
-        u, r_est = select_point(self.gpr, self.gpc, *self.t.get('origin', 'boundary_points', 'vols_pinchoff', 'directions'), do_gpr_p1, do_gpc_p1)
+        u, r_est = select_point(self.gpr, self.gpc, *self.t.get('origin', 'boundary_points', 'vols_pinchoff', 'directions'), do_gpr_p1, do_gpc_p1, d_tooclose = self.t['d_tooclose'])
         self.timer.logtime()
         self.sampler_hook = start_sampling(self.gpr, *self.t.get('samples', 'origin', 'real_ub', 'real_lb',
                                              'directions', 'n_part', 'sigma', 'max_steps'),sampler_hook=self.sampler_hook) if do_gpr_p1 else None
@@ -208,7 +208,7 @@ class Redo_sampler(Base_Sampler):
         return self.t.getd(*self.t['verbose'])
     
         
-def select_point(hypersurface, selection_model, origin, boundary_points, vols_pinchoff, directions, gpr_in_use=True, gpc_in_use=True):
+def select_point(hypersurface, selection_model, origin, boundary_points, vols_pinchoff, directions, gpr_in_use=True, gpc_in_use=True, d_tooclose = 20.):
     """selects a point to investigate using thompson sampling, uniform sampling or random angles
     depending on use_selection flag or is no samples are present
     Args:
@@ -226,7 +226,7 @@ def select_point(hypersurface, selection_model, origin, boundary_points, vols_pi
     
     if len(boundary_points) > 0 and gpc_in_use:
         points_candidate = rw.project_crosses_to_boundary(boundary_points, hypersurface, origin)
-        v = choose_next(points_candidate, vols_pinchoff, selection_model, d_tooclose = 20.)
+        v = choose_next(points_candidate, vols_pinchoff, selection_model, d_tooclose = d_tooclose)
     elif len(boundary_points) != 0:
         v = rw.pick_from_boundary_points(boundary_points)
     else:

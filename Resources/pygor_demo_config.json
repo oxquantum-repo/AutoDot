@@ -61,6 +61,7 @@
     "gpc": {
 	"gpc_start": 10, 
 	"gpc_on": true,
+	"d_tooclose": 20.0,
 	"gpc_list": [true,true,false],
 	"configs": {
 	    "length_prior_mean": 500.0,

@@ -41,10 +41,17 @@ class Investigation_stage():
         
         for seq_key in seq_keys:
             
-            afunc_name = configs[seq_key].get('func','do_nothing')
-            cfunc_name = configs[seq_key].get('condition','check_nothing')
-            self.aquisition_functions += [getattr(measurement_functions,afunc_name)]
-            self.cond_functions += [getattr(condition_functions,cfunc_name)]
+            afunc = configs[seq_key].get('func','do_nothing')
+            cfunc = configs[seq_key].get('condition','check_nothing')
+            
+            if isinstance(afunc, str):
+                afunc = getattr(measurement_functions,afunc)
+                
+            if isinstance(cfunc, str):
+                cfunc = getattr(condition_functions,cfunc)
+                
+            self.aquisition_functions += [afunc]
+            self.cond_functions += [cfunc]
             self.function_configs += [configs[seq_key]]
             
     def do_extra_measure(self,params,minc,maxc,**kwags):

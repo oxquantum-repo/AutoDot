@@ -45,6 +45,7 @@
 
     "gpc": {
 	"gpc_start": 10, 
+	"d_tooclose": 20.0,
 	"gpc_on": true,
 	"gpc_list": [true,true,false],
 	"configs": {
