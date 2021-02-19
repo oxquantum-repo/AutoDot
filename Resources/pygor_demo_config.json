@@ -60,16 +60,17 @@
 
     "gpc": {
 	"gpc_start": 10, 
-	"gpc_on": true,
 	"d_tooclose": 20.0,
-	"gpc_list": [true,true,false],
-	"configs": {
-	    "length_prior_mean": 500.0,
-	    "length_prior_var": 100.0,
-	    "var_prior_mean": 50.0,
-	    "var_prior_var": 20.0,
-	    "kernal": "Matern52"}
-	},
+	"gpc_on": true,
+	"gpc_list": ["GPC_base","GPC_base",false],
+	"GPC_base": {"model": "GP_base",
+	             "hyperparams": {
+                               "type": "gpc",
+	                       "length_prior_mean": 500.0,
+	                       "length_prior_var": 100.0,
+	                       "var_prior_mean": 50.0,
+	                       "var_prior_var": 20.0,
+	                       "kernal": "Matern52"}}},
 
     "gpr": {
 	"restarts": 5,

@@ -6,6 +6,7 @@ Created on Fri Jan 24 16:19:24 2020
 """
 from .GPy_wrapper import GPyWrapper_Classifier as GPC
 from . import GP_util
+from . import models
 import numpy as np
 import multiprocessing 
 from ...main_utils.dict_util import Tuning_dict
@@ -59,6 +60,77 @@ class GP_base():
             return self.gp.predict_prob(x)
         
         
+class Model_heiracical():
+    def __init__(self, n, bound, origin, configs):
+        self.built = [False]*len(configs)
+        
+        
+        self.models = []
+        for config in configs:
+            if isinstance(config['model'], str):
+                self.models += [getattr(models, config['model'])(n, bound, origin, config['hyperparams'])]
+            else:
+                self.models += [config['model'](n, bound, origin, config['hyperparams'])]
+                
+                
+    def train(self, x, y_cond, td):
+        x = np.array(x)
+        for i, model in enumerate(self.models):
+            
+            use_to_train = np.array([True]*x.shape[0])if i == 0 else y_cond[:,i-1]
+            count_pos = use_to_train[use_to_train].size
+            count_pos_of_pos = np.sum(y_cond[use_to_train,i])
+            print("There are %i training examples for model %i and %i are positive"%(count_pos,i,count_pos_of_pos))
+            if count_pos>0:
+                model.train(x[use_to_train],td[use_to_train,i])
+                self.built[i] = True
+                
+                
+    def optimise(self,parallel=False):
+        
+        if parallel:
+            def f(i):
+                self.models[i].optimise()
+            #pool = multiprocessing.Pool(multiprocessing.cpu_count())
+            with Pool(processes=multiprocessing.cpu_count()) as pool:
+                pool.map(f, range(len(self.models)))
+                
+            #results
+        else:
+            for i, model in enumerate(self.models):
+                if self.built[i]:
+                    model.optimise()
+                    
+    def predict(self, x):
+        
+        results = []
+        for i, model in enumerate(self.models):
+                if self.built[i]:
+                    results += [model.predict(x)]
+        
+        return results
+    
+    def predict_comb_prob(self,x):
+        probs = self.predict(x)
+        total_prob = np.prod(probs, axis=0)
+        return total_prob
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+'''
         
 class GPC_heiracical():
     def __init__(self,n,bound,origin,configs):
@@ -109,3 +181,6 @@ class GPC_heiracical():
         probs = self.predict(x)
         total_prob = np.prod(probs, axis=0)
         return total_prob
+        
+        
+'''

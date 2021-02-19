@@ -8,7 +8,8 @@ import numpy as np
 from .Sampling.gp import util
 from .Sampling.test_common import Tester
 from .Sampling.BO_common import random_hypersphere
-from .Sampling.gp.GP_models import GPC_heiracical, GP_base
+from .Sampling.gp.GP_models import Model_heiracical
+from .Sampling.gp.models import GP_base
 
 from .Sampling import random_walk as rw
 
@@ -96,13 +97,17 @@ class Paper_sampler(Base_Sampler):
         
         
         gpc_list = self.t['gpc']['gpc_list']
-        gpc_configs = self.t['gpc']['configs']
         
-        if not isinstance(gpc_configs,list):
-            num_gpc = np.sum(gpc_list)
-            gpc_configs = [gpc_configs]*num_gpc
+        #gpc_configs = self.t['gpc']['configs']
+        
+
             
-        self.gpc = GPC_heiracical(*self.t.get('n','bound','origin'),gpc_configs)
+        selection_configs = []
+        for model_stage in gpc_list:
+            if model_stage != False:
+                selection_configs += [self.t['gpc'][model_stage]]
+            
+        self.gpc = Model_heiracical(*self.t.get('n','bound','origin'), selection_configs)
         
         self.t.add(**configs['gpr'],**configs['gpc'],**configs['sampling'],**configs['pruning'])
     
@@ -134,7 +139,7 @@ class Paper_sampler(Base_Sampler):
         self.timer.logtime()
         self.t.app(**dict(zip(('d_vec', 'poff_vec', 'meas_each_axis', 'vols_each_axis'),prune_results)))
         
-        em_results = self.t['do_extra_meas'](vols_pinchoff, th_score) if found else {'conditional_idx':0}
+        em_results = self.t['do_extra_meas'](vols_pinchoff, th_score) if found else {'conditional_idx':0, 'td': [0.0]*(self.investigation_stage.inv_max + 1)}
         self.timer.logtime()
         self.t.app(extra_measure=em_results), self.t.app(conditional_idx=em_results['conditional_idx'])
         
@@ -147,7 +152,7 @@ class Paper_sampler(Base_Sampler):
         
         if do_gpr: train_gpr(self.gpr,*self.t.get('origin', 'bound', 'd_r'), X_train, optimise = do_optim or self.t['changed_origin'])
         self.timer.logtime()
-        if do_gpc: train_hgpc(self.gpc, self.t['vols_pinchoff'], unpack('conditional_idx',self.t['extra_measure']), self.t['gpc_list'], optimise = do_optim)
+        if do_gpc: train_hmodel(self.gpc, self.t['vols_pinchoff'], unpack('td',self.t['extra_measure']), unpack('conditional_idx',self.t['extra_measure']), self.t['gpc_list'], optimise = do_optim)
         self.timer.logtime()
         
         if self.sampler_hook is not None and do_gpr:
@@ -323,6 +328,30 @@ def train_hgpc(model,X,Y_count,mapping,optimise=False):
                 
 
     model.train(X, conditional_labels)
+    
+    if optimise:
+        model.optimise()
+        
+        
+        
+def train_hmodel(model, X, Y_td, Y_count, mapping,optimise=False):
+    
+    model_mapping = [i for i, x in enumerate(mapping) if isinstance(x, str)]
+    
+    '''
+    for idx in Y_count:
+        conditional_labels += [[idx>c for c in model_mapping]]
+    '''
+    
+    training_data = np.array(Y_td, dtype = np.float)[:,model_mapping]
+    
+    
+    conditional_labels = []
+    for idx in Y_count:
+        conditional_labels += [[idx>c for c in model_mapping]]
+    conditional_labels = np.array(conditional_labels)
+                
+    model.train(X, conditional_labels ,training_data)
     
     if optimise:
         model.optimise()

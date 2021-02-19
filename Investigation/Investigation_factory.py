@@ -66,7 +66,11 @@ class Investigation_stage():
         results = []
         
         all_resutls = [None]*self.inv_max
+        training_data_all = [True] + [False]*self.inv_max
+        
         for i in range(self.inv_max):
+            training_data = None
+            
             data = self.aquisition_functions[i](plunger_jump,self.measure,anchor_vals,self.function_configs[i],**kwags)
             self.timer.logtime()
             
@@ -75,9 +79,12 @@ class Investigation_stage():
             if len(self.stage_results)>0:
                 np.array(self.stage_results,dtype=np.float)
                 past_results = np.array(self.stage_results,dtype=np.float)[:,i]
-                continue_on = bool_cond(check_result,past_results[~np.isnan(past_results)],**self.isdynamic[i])  if isinstance(self.isdynamic[i],dict) else continue_on
+                if isinstance(self.isdynamic[i],dict):
+                    continue_on, training_data = bool_cond(check_result,past_results[~np.isnan(past_results)],**self.isdynamic[i])
             
             all_resutls[i] = check_result
+            
+            
             
             if isinstance(meta_info,dict):
                 new_kwags = meta_info.get('kwags',None)
@@ -85,6 +92,11 @@ class Investigation_stage():
                     kwags['last_check'] = new_kwags
             
             results += [[check_result,continue_on,meta_info,data]]
+            
+            if training_data is None:
+                training_data = continue_on
+                
+            training_data_all[i+1] = training_data
             
             if not continue_on:
                 break
@@ -94,16 +106,22 @@ class Investigation_stage():
         
         results_full['extra_measure'] = results
         results_full['conditional_idx'] = self.cond[i]
+        results_full['td'] = training_data_all
         results_full['times'] = self.timer.times_list[-1]
+        
         
         return results_full
       
         
         
-def bool_cond(score,past,min_thresh=0.0001,min_data=10,quantile=0.85):
+def bool_cond(score,past,min_thresh=0.0001,min_data=10,quantile=0.85, classification = True):
     th_score = np.maximum(min_thresh, np.quantile(past, quantile)) if len(past)>min_data else min_thresh
     print("Score thresh: ",th_score)
-    return score>=th_score
+    
+    if classification:
+        return score>=th_score, score>=th_score
+    else:
+        return score>=th_score, score
         
         
             
