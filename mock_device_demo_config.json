@@ -41,7 +41,8 @@
 	"bound": [-2000, -2000, -2000],
 	"num_samples": 50,
 	"origin": [0,0,0],
-	"ub_box": [0, 0, 0]},
+	"ub_box": [0, 0, 0],
+	"sampler": "Paper_sampler"},
 
     "gpc": {
 	"gpc_start": 10, 

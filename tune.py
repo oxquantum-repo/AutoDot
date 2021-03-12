@@ -14,7 +14,7 @@ from .Playground.mock_device import build_mock_device_with_json
 
 
 
-
+from importlib import import_module
 
 
 def tune_with_pygor_from_file(config_file):
@@ -110,46 +110,6 @@ def tune_with_playground_from_file(config_file):
         plot_conditional_idx_improvment(sampler.t['conditional_idx'],configs)
     
     return results,sampler
-
-
-def tune_with_playground_from_file(config_file):
-    
-    with open(config_file) as f:
-        configs = json.load(f)
-        
-        
-        
-    device = build_mock_device_with_json(configs['playground'])
-    
-    if configs['playground'].get('plot',False): show_dummy_device(device,configs)
-    
-    plunger_gates = configs['plunger_gates']
-    
-    
-    def jump(params,inv=False):
-        if inv:
-            return params
-        else:
-            return device.jump(params)
-    
-    
-    measure = device.measure
-    
-    check = lambda: device.check(plunger_gates)
-    
-    inv_timer = Timer()
-    investigation_stage = Investigation_stage(jump,measure,check,configs['investigation'],inv_timer)
-        
-    results,sampler = tune(jump,measure,investigation_stage,configs)
-    
-    fields = ['vols_pinchoff','conditional_idx','origin']
-    
-    if configs['playground'].get('plot',False): 
-        show_gpr_gpc(sampler.gpr, configs, *sampler.t.get(*fields), gpc=sampler.gpc.predict_comb_prob)
-        plot_conditional_idx_improvment(sampler.t['conditional_idx'],configs)
-    
-    return results,sampler
-
 
 
 
@@ -283,7 +243,7 @@ def tune(jump,measure,investigation_stage,configs):
     configs['jump'] = jump
     configs['measure'] = measure
     configs['investigation_stage_class'] = investigation_stage
-    ps = Paper_sampler(configs)
+    ps = getattr(import_module('AutoDot.Sampler_factory'), configs['general']['sampler'], Paper_sampler)(configs)
     for i in range(configs['general']['num_samples']):
         print("============### ITERATION %i ###============"%i)
         results = ps.do_iter()
