@@ -95,7 +95,7 @@ class Investigation_stage():
         results_full['extra_measure'] = results
         results_full['conditional_idx'] = self.cond[i]
         results_full['times'] = self.timer.times_list[-1]
-        
+        results_full['score'] = score(results_full)
         return results_full
       
         
@@ -104,6 +104,10 @@ def bool_cond(score,past,min_thresh=0.0001,min_data=10,quantile=0.85):
     th_score = np.maximum(min_thresh, np.quantile(past, quantile)) if len(past)>min_data else min_thresh
     print("Score thresh: ",th_score)
     return score>=th_score
+
+
+def score(results_full):
+    return results_full['conditional_idx']
         
         
             
