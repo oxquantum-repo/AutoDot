@@ -1,0 +1,53 @@
+{
+	"playground":{
+	"shapes":{
+		"Crosstalk_box":{},
+		"Leakage":{}},
+	"ndim":3,
+        "plot":true},
+
+    "plunger_gates": [1,2],
+    "save_dir":"mock_device_demo/",
+
+    "investigation":{
+	"measurement_seq":["diag_trace","2d_lowres","2d_highres"],
+	"cond_meas": [false,{ "quantile" : 0.85,  "min_thresh" : 0.001 },  false],
+	"diag_trace":{
+	    "func":"mock_measurement",
+	    "condition":"mock_peak_check",
+	    "a":[0,0],
+	    "b":[-1000,-1000],
+	    "pause":0.5,
+	    "verbose":true},
+	"2d_lowres":{
+	    "func":"mock_measurement",
+	    "condition":"mock_score_func",
+	    "target":[-500,-250],
+	    "pause":1},
+	"2d_highres":{
+	    "func":"mock_measurement",
+	    "condition":"check_nothing",
+	    "pause":2}},
+
+    "detector": {
+	"d_r": 20, 
+	"len_after_poff": 300, 
+	"th_high": 0.2, 
+	"th_low": 0.01},
+
+    "general": {
+	"directions": [-1.0, -1.0, -1.0],
+	"lb_box": [-2000, -2000, -2000],
+	"bound": [-2000, -2000, -2000],
+	"num_samples": 10,
+	"origin": [0,0,0],
+	"ub_box": [0, 0, 0],
+	"sampler": "CMAES_sampler"},
+	
+	"cmaes":{
+	},
+
+    "track": ["extra_measure", "conditional_idx", "score", "vols_pinchoff", "times", "r_vals", "poff_traces", "detected"],
+    "verbose": ["conditional_idx","vols_pinchoff","detected","r_vals"]
+}
+

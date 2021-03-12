@@ -12,7 +12,7 @@ from .Sampling.gp.GP_models import GPC_heiracical, GP_base
 
 from .Sampling import random_walk as rw
 
-
+import cma
 
 class Base_Sampler(object):
     def __init__(self,configs):
@@ -74,6 +74,68 @@ class Base_Sampler(object):
         detector_conducting = util.ConductingDetectorThreshold(threshold_high)
         self.tester = Tester(*self.t.get('jump', 'measure', 'real_lb', 'real_ub'), detector_pinchoff, d_r=configs['d_r'], len_after_pinchoff=configs['len_after_poff'], logging=True, detector_conducting=detector_conducting)
         
+
+class CMAES_sampler(Base_Sampler):
+    def __init__(self, configs):
+        super().__init__(configs)
+
+        configs['cmaes'] = self.setup_cmaes(configs['cmaes'])
+        self.t.add(**configs['cmaes'])
+
+        self.t.add(d_r=self.t['detector']['d_r'])#bodge
+
+        self.t.add(samples=None,point_selected=None,boundary_points=[],
+                   vols_poff=[],detected=[],vols_poff_axes=[],poff=[],poff_traces=[],
+                   all_v=[],vols_pinchoff=[],d_vec=[],poff_vec=[],meas_each_axis=[],vols_each_axis=[],extra_measure=[],
+                   vols_pinchoff_axes=[],vols_detected_axes=[],changed_origin=[],conditional_idx=[],r_vals=[],score=[])
+
+
+    def setup_cmaes(self, configs):
+        #TODO insert default parameter 
+        cma_option_default = {"bounds": [-4,0], "popsize": 10}
+
+        x0, sigma0 = configs.pop('x0', 3 * [-0.01]), configs.pop('sigma0', 0.01)
+        for option, value in cma_option_default.items():
+            configs.setdefault(option, value)
+
+        self.cmaes = cma.CMAEvolutionStrategy(x0, sigma0, configs)
+        return {**configs, 'x0': x0, 'sigma0': sigma0}
+
+
+    def do_iter(self):
+        
+        th_score=0.01
+
+        # PICK VECTORS
+        vecs = self.cmaes.ask()
+
+        for u in vecs:
+            self.timer.start()
+            i = self.t['iter']
+            print("------------###Child %s###------------"%(i % self.t['popsize']))
+
+            # MAP VECTOR TO POINT IN PINCHOFF AREA
+            r, vols_pinchoff, found, t_firstjump, poff_trace = self.tester.get_r(u, origin=self.t['origin'])
+            self.t.app(r_vals=r,vols_pinchoff=vols_pinchoff, detected=found, poff_traces=poff_trace)
+            self.timer.logtime()
+
+            in_area = np.any(np.array(u) > 0) or np.any(np.array(u) < -1)
+            # DO MEASUREMENTS
+            em_results = self.t['do_extra_meas'](vols_pinchoff, th_score) if not in_area else {'conditional_idx':0}
+            self.t.app(extra_measure=em_results), self.t.app(conditional_idx=em_results['conditional_idx']), self.t.app(score=em_results['score'])
+            self.timer.logtime()
+
+            self.t['times']=self.timer.times_list
+            self.timer.stop()
+            self.t.save(track=self.t['track']) # TODO uncomment
+            
+            self.t['iter'] += 1
+
+        # TELL CMAES RESUTLS
+        self.cmaes.tell(vecs, -1*np.array(self.t['score'][-len(vecs):]))
+
+        self.cmaes.disp()
+        return self.t.getd(*self.t['verbose'])
 
 
 
