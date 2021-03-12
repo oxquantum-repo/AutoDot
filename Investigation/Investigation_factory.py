@@ -96,6 +96,7 @@ class Investigation_stage():
         results_full['conditional_idx'] = self.cond[i]
         results_full['times'] = self.timer.times_list[-1]
         results_full['score'] = score(results_full)
+        print("score: ", results_full['score'])
         return results_full
       
         
@@ -107,7 +108,7 @@ def bool_cond(score,past,min_thresh=0.0001,min_data=10,quantile=0.85):
 
 
 def score(results_full):
-    return results_full['conditional_idx']
+    return -results_full['conditional_idx']
         
         
             

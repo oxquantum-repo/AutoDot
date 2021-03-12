@@ -47,6 +47,17 @@
 	"cmaes":{
 	},
 
+	"gpr": {
+		"restarts": 5,
+		"factor_std": 2.0, 
+		"gpr_start": 10, 
+		"gpr_on": true,
+		"length_prior_mean":0.4, 
+		"length_prior_var" : 0.1,
+		"r_min": 0.0,
+		"var_prior_mean_divisor": 4.0,
+		"kernal": "Matern52"},
+
     "track": ["extra_measure", "conditional_idx", "score", "vols_pinchoff", "times", "r_vals", "poff_traces", "detected"],
     "verbose": ["conditional_idx","vols_pinchoff","detected","r_vals"]
 }

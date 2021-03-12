@@ -80,7 +80,6 @@ class CMAES_sampler(Base_Sampler):
         super().__init__(configs)
 
         configs['cmaes'] = self.setup_cmaes(configs['cmaes'])
-        self.t.add(**configs['cmaes'])
 
         self.t.add(d_r=self.t['detector']['d_r'])#bodge
 
@@ -89,10 +88,15 @@ class CMAES_sampler(Base_Sampler):
                    all_v=[],vols_pinchoff=[],d_vec=[],poff_vec=[],meas_each_axis=[],vols_each_axis=[],extra_measure=[],
                    vols_pinchoff_axes=[],vols_detected_axes=[],changed_origin=[],conditional_idx=[],r_vals=[],score=[])
 
+        self.t.add(d_r=self.t['detector']['d_r'])#bodge
+        self.gpr = GP_base(*self.t.get('n','bound','origin'),self.t['gpr'])
+
+        self.t.add(**configs['cmaes'], **configs['gpr'])
+
 
     def setup_cmaes(self, configs):
         #TODO insert default parameter 
-        cma_option_default = {"bounds": [-4,0], "popsize": 10}
+        cma_option_default = {"bounds": [-5,0], "popsize": 10}
 
         x0, sigma0 = configs.pop('x0', 3 * [-0.01]), configs.pop('sigma0', 0.01)
         for option, value in cma_option_default.items():
@@ -109,30 +113,44 @@ class CMAES_sampler(Base_Sampler):
         # PICK VECTORS
         vecs = self.cmaes.ask()
 
-        for u in vecs:
+        for v in vecs:
             self.timer.start()
             i = self.t['iter']
             print("------------###Child %s###------------"%(i % self.t['popsize']))
 
+            do_optim = (i%11==0) and (i > 0)
+            do_gpr = (i>self.t['gpr_start']) and self.t['gpr_on']
+            do_gpr_p1 = (i-1>self.t['gpr_start']) and self.t['gpr_on']
+            print("GPR:",do_gpr,"GPR1:",do_gpr_p1,"Optim:",do_optim)
+            u = v / np.sqrt(np.sum(np.square(v)))
+
+            # ESTIMATE R AFTER FIRST OPTIMIZATION OF GPR (do_optim)
+            r_est = estimate_r(u, self.gpr, do_gpr_p1) if i > 11 and do_gpr else None
+
             # MAP VECTOR TO POINT IN PINCHOFF AREA
-            r, vols_pinchoff, found, t_firstjump, poff_trace = self.tester.get_r(u, origin=self.t['origin'])
+            r, vols_pinchoff, found, t_firstjump, poff_trace = self.tester.get_r(v, origin=self.t['origin'], r_est=r_est)
             self.t.app(r_vals=r,vols_pinchoff=vols_pinchoff, detected=found, poff_traces=poff_trace)
             self.timer.logtime()
 
-            in_area = np.any(np.array(u) > 0) or np.any(np.array(u) < -1)
+            in_area = np.all(np.array(u) <= 0) and np.all(np.array(u) >= -1)
             # DO MEASUREMENTS
-            em_results = self.t['do_extra_meas'](vols_pinchoff, th_score) if not in_area else {'conditional_idx':0}
+            em_results = self.t['do_extra_meas'](vols_pinchoff, th_score) if in_area else {'conditional_idx':0, 'score': 1}
             self.t.app(extra_measure=em_results), self.t.app(conditional_idx=em_results['conditional_idx']), self.t.app(score=em_results['score'])
+            self.timer.logtime()
+
+            # TRAIN GPR
+            X_train_all, X_train, _ = util.merge_data(*self.t.get('vols_pinchoff', 'detected', 'vols_pinchoff_axes', 'vols_detected_axes'))
+            if do_gpr: train_gpr(self.gpr,*self.t.get('origin', 'bound', 'd_r'), X_train, optimise = do_optim or self.t['changed_origin'])
             self.timer.logtime()
 
             self.t['times']=self.timer.times_list
             self.timer.stop()
-            self.t.save(track=self.t['track']) # TODO uncomment
+            self.t.save(track=self.t['track'])
             
             self.t['iter'] += 1
 
         # TELL CMAES RESUTLS
-        self.cmaes.tell(vecs, -1*np.array(self.t['score'][-len(vecs):]))
+        self.cmaes.tell(vecs, np.array(self.t['score'][-len(vecs):]))
 
         self.cmaes.disp()
         return self.t.getd(*self.t['verbose'])
@@ -296,13 +314,21 @@ def select_point(hypersurface, selection_model, origin, boundary_points, vols_pi
         return random_angle_directions(len(origin), 1, np.array(directions))[0], None
     v_origin = v - origin
     u = v_origin / np.sqrt(np.sum(np.square(v_origin)))
+
+    return u.squeeze(), estimate_r(u, hypersurface, gpr_in_use)
+
+
+def estimate_r(u, hypersurface, gpr_in_use):
+    """
+    estimates the associated point in the pinch-off area given an unit vector
+    Args:
+        u: unitvector
+        hypersurface: model of hypersurface
+        gpr_in_use: whether the approximation should be applied or not
+    """
     r_est,r_std = hypersurface.predict(u[np.newaxis,:])
-    
     r_est = np.maximum(r_est - 1.0*np.sqrt(r_std), 0.0)
-    
-    return u.squeeze(), r_est.squeeze() if gpr_in_use else None
-
-
+    return r_est.squeeze() if gpr_in_use else None
 
 
 
