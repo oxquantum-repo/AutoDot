@@ -83,6 +83,7 @@ class CMAES_sampler(Base_Sampler):
 
         self.t.add(d_r=self.t['detector']['d_r'])#bodge
 
+        # TODO remove unnecessary
         self.t.add(samples=None,point_selected=None,boundary_points=[],
                    vols_poff=[],detected=[],vols_poff_axes=[],poff=[],poff_traces=[],
                    all_v=[],vols_pinchoff=[],d_vec=[],poff_vec=[],meas_each_axis=[],vols_each_axis=[],extra_measure=[],
@@ -91,12 +92,14 @@ class CMAES_sampler(Base_Sampler):
         self.t.add(d_r=self.t['detector']['d_r'])#bodge
         self.gpr = GP_base(*self.t.get('n','bound','origin'),self.t['gpr'])
 
-        self.t.add(**configs['cmaes'], **configs['gpr'])
+        self.t.add(**configs['cmaes'], **configs['pruning'], **configs['gpr'])
 
 
     def setup_cmaes(self, configs):
         #TODO insert default parameter 
-        cma_option_default = {"bounds": [-5,0], "popsize": 10}
+        #TODO undefined dimensions 
+        #TODO use 'directions' to undefined direction
+        cma_option_default = {"bounds": [3*[-1],3*[0]], "popsize": 10}
 
         x0, sigma0 = configs.pop('x0', 3 * [-0.01]), configs.pop('sigma0', 0.01)
         for option, value in cma_option_default.items():
@@ -119,29 +122,39 @@ class CMAES_sampler(Base_Sampler):
             print("------------###Child %s###------------"%(i % self.t['popsize']))
 
             do_optim = (i%11==0) and (i > 0)
-            do_gpr = (i>self.t['gpr_start']) and self.t['gpr_on']
+            do_gpr, do_pruning = (i>self.t['gpr_start']) and self.t['gpr_on'], (self.t['pruning_stop']>i) and self.t['pruning_on']
             do_gpr_p1 = (i-1>self.t['gpr_start']) and self.t['gpr_on']
             print("GPR:",do_gpr,"GPR1:",do_gpr_p1,"Optim:",do_optim)
-            u = v / np.sqrt(np.sum(np.square(v)))
+
+            # APPLY NEW ORIGIN
+            v_origin = v - self.t['origin']
+            u = v_origin / np.sqrt(np.sum(np.square(v_origin)))
 
             # ESTIMATE R AFTER FIRST OPTIMIZATION OF GPR (do_optim)
             r_est = estimate_r(u, self.gpr, do_gpr_p1) if i > 11 and do_gpr else None
+            self.timer.logtime()
 
             # MAP VECTOR TO POINT IN PINCHOFF AREA
             r, vols_pinchoff, found, t_firstjump, poff_trace = self.tester.get_r(v, origin=self.t['origin'], r_est=r_est)
+            self.timer.logtime()
             self.t.app(r_vals=r,vols_pinchoff=vols_pinchoff, detected=found, poff_traces=poff_trace)
-            self.timer.logtime()
 
-            in_area = np.all(np.array(u) <= 0) and np.all(np.array(u) >= -1)
-            # DO MEASUREMENTS
-            em_results = self.t['do_extra_meas'](vols_pinchoff, th_score) if in_area else {'conditional_idx':0, 'score': 1}
-            self.t.app(extra_measure=em_results), self.t.app(conditional_idx=em_results['conditional_idx']), self.t.app(score=em_results['score'])
+            # CHECK FOR PRUNING
+            prune_results = self.tester.measure_dvec(vols_pinchoff+(self.t['step_back']*np.array(self.t['directions']))) if do_pruning else [None]*4
             self.timer.logtime()
+            self.t.app(**dict(zip(('d_vec', 'poff_vec', 'meas_each_axis', 'vols_each_axis'),prune_results)))
+
+            # DO MEASUREMENTS
+            em_results = self.t['do_extra_meas'](vols_pinchoff, th_score) if found else {'conditional_idx':0, 'score': 1}
+            self.timer.logtime()
+            self.t.app(extra_measure=em_results), self.t.app(conditional_idx=em_results['conditional_idx']), self.t.app(score=em_results['score'])
+
+            # APPLY RESULTS FROM PRUNING-CECK
+            if do_pruning: self.t.add(**util.compute_hardbound(*self.t.getl('poff_vec', 'detected', 'vols_pinchoff'), *self.t.get('step_back', 'origin', 'bound')))
 
             # TRAIN GPR
             X_train_all, X_train, _ = util.merge_data(*self.t.get('vols_pinchoff', 'detected', 'vols_pinchoff_axes', 'vols_detected_axes'))
             if do_gpr: train_gpr(self.gpr,*self.t.get('origin', 'bound', 'd_r'), X_train, optimise = do_optim or self.t['changed_origin'])
-            self.timer.logtime()
 
             self.t['times']=self.timer.times_list
             self.timer.stop()

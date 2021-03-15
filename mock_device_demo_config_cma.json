@@ -47,6 +47,11 @@
 	"cmaes":{
 	},
 
+	"pruning": {
+	"pruning_stop": 30, 
+	"pruning_on": true, 
+	"step_back": 100},	
+
 	"gpr": {
 		"restarts": 5,
 		"factor_std": 2.0, 
