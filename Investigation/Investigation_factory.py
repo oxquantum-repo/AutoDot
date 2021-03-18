@@ -6,6 +6,7 @@ Created on Thu Nov 14 10:28:23 2019
 """
 from . import measurement_functions
 from . import condition_functions
+from . import score_functions
 import numpy as np
 
 
@@ -17,6 +18,8 @@ class Investigation_stage():
         self.check = check
         
         self.configure_investigation_sequence(configs)
+
+        self.score_function = getattr(score_functions,configs.get('score_func', 'score_nothing'))
         
         self.inv_max = len(self.aquisition_functions)
         self.isdynamic = configs.get('cond_meas',[False]*self.inv_max)
@@ -95,8 +98,7 @@ class Investigation_stage():
         results_full['extra_measure'] = results
         results_full['conditional_idx'] = self.cond[i]
         results_full['times'] = self.timer.times_list[-1]
-        results_full['score'] = score(results_full)
-        print("score: ", results_full['score'])
+        results_full['score'] = self.score_function(results_full)
         return results_full
       
         
@@ -105,12 +107,4 @@ def bool_cond(score,past,min_thresh=0.0001,min_data=10,quantile=0.85):
     th_score = np.maximum(min_thresh, np.quantile(past, quantile)) if len(past)>min_data else min_thresh
     print("Score thresh: ",th_score)
     return score>=th_score
-
-
-def score(results_full):
-    return -results_full['conditional_idx']
-        
-        
-            
-            
-            
+                    

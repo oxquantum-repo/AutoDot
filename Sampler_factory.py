@@ -147,6 +147,7 @@ class CMAES_sampler(Base_Sampler):
             # DO MEASUREMENTS
             em_results = self.t['do_extra_meas'](vols_pinchoff, th_score) if found else {'conditional_idx':0, 'score': 1}
             self.timer.logtime()
+            print("score: ", em_results['score'])
             self.t.app(extra_measure=em_results), self.t.app(conditional_idx=em_results['conditional_idx']), self.t.app(score=em_results['score'])
 
             # APPLY RESULTS FROM PRUNING-CECK

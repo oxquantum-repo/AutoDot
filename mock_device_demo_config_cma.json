@@ -27,7 +27,8 @@
 	"2d_highres":{
 	    "func":"mock_measurement",
 	    "condition":"check_nothing",
-	    "pause":2}},
+	    "pause":2},
+	"score_func": "mock_count_stages"},
 
     "detector": {
 	"d_r": 20, 
