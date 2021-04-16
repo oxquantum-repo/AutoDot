@@ -79,7 +79,7 @@ class CMAES_sampler(Base_Sampler):
     def __init__(self, configs):
         super().__init__(configs)
 
-        configs['cmaes'] = self.setup_cmaes(configs['cmaes'])
+        configs['cmaes'] = self.setup_cmaes(configs['cmaes'], len(configs['general']['origin']))
 
         self.t.add(d_r=self.t['detector']['d_r'])#bodge
 
@@ -95,13 +95,13 @@ class CMAES_sampler(Base_Sampler):
         self.t.add(**configs['cmaes'], **configs['pruning'], **configs['gpr'])
 
 
-    def setup_cmaes(self, configs):
+    def setup_cmaes(self, configs, dim):
         #TODO insert default parameter 
         #TODO undefined dimensions 
         #TODO use 'directions' to undefined direction
-        cma_option_default = {"bounds": [3*[-1],3*[0]], "popsize": 10}
+        cma_option_default = {"bounds": [dim*[-1],dim*[0]], "popsize": 10}
 
-        x0, sigma0 = configs.pop('x0', 3 * [-0.01]), configs.pop('sigma0', 0.01)
+        x0, sigma0 = configs.pop('x0', dim * [-0.01]), configs.pop('sigma0', 0.01)
         for option, value in cma_option_default.items():
             configs.setdefault(option, value)
 
