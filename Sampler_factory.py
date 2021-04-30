@@ -1,9 +1,12 @@
 import time
 import multiprocessing
 from pathlib import Path
+
 from .main_utils.dict_util import Tuning_dict
 from .main_utils.utils import Timer
 import numpy as np
+from sympy import Symbol, Or
+from sympy.solvers.inequalities import reduce_rational_inequalities, solve_rational_inequalities
 
 from .Sampling.gp import util
 from .Sampling.test_common import Tester
@@ -98,10 +101,9 @@ class CMAES_sampler(Base_Sampler):
     def setup_cmaes(self, configs, dim):
         #TODO insert default parameter 
         #TODO undefined dimensions 
-        #TODO use 'directions' to undefined direction
-        cma_option_default = {"bounds": [dim*[-1],dim*[0]], "popsize": 10}
 
-        x0, sigma0 = configs.pop('x0', dim * [-0.01]), configs.pop('sigma0', 0.01)
+        cma_option_default = {"bounds": [-np.inf, 0], "popsize": 10}
+        x0, sigma0 = configs.pop('x0', dim * [-1]), configs.pop('sigma0', 1)
         for option, value in cma_option_default.items():
             configs.setdefault(option, value)
 
@@ -126,9 +128,8 @@ class CMAES_sampler(Base_Sampler):
             do_gpr_p1 = (i-1>self.t['gpr_start']) and self.t['gpr_on']
             print("GPR:",do_gpr,"GPR1:",do_gpr_p1,"Optim:",do_optim)
 
-            # APPLY NEW ORIGIN
-            v_origin = v - self.t['origin']
-            u = v_origin / np.sqrt(np.sum(np.square(v_origin)))
+            # GET UNITECTOR
+            u = v / np.sqrt(np.sum(np.square(v)))
 
             # ESTIMATE R AFTER FIRST OPTIMIZATION OF GPR (do_optim)
             r_est = estimate_r(u, self.gpr, do_gpr_p1) if i > 11 and do_gpr else None
@@ -144,8 +145,11 @@ class CMAES_sampler(Base_Sampler):
             self.timer.logtime()
             self.t.app(**dict(zip(('d_vec', 'poff_vec', 'meas_each_axis', 'vols_each_axis'),prune_results)))
 
+            # CHECK IF LINE OF UNIT VECTOR IS IN BOUND
+            in_bound = check_if_line_in_bound(u, self.t.get("real_lb")[0], self.t.get("real_ub")[0]) if self.t['pruning_on'] else True
+
             # DO MEASUREMENTS
-            em_results = self.t['do_extra_meas'](vols_pinchoff, th_score) if found else {'conditional_idx':0, 'score': 1}
+            em_results = self.t['do_extra_meas'](vols_pinchoff, th_score) if found and in_bound else {'conditional_idx': 0, 'score': np.inf}
             self.timer.logtime()
             print("score: ", em_results['score'])
             self.t.app(extra_measure=em_results), self.t.app(conditional_idx=em_results['conditional_idx']), self.t.app(score=em_results['score'])
@@ -461,7 +465,6 @@ def choose_next(points_candidate, points_observed, gpc_dict, d_tooclose = 100.):
     prob = predict_probs(points_reduced, gpc_dict)[0]
     p = prob / np.sum(prob)
     
-    
     idx = np.random.choice(len(points_reduced), p=p) #Thompson sampling
     point_best =  points_reduced[idx]
     return point_best
@@ -506,3 +509,12 @@ def points_to_u(origin, points):
     u_dirs = np.array(points) - np.array(origin)[np.newaxis,:]
     return u_dirs/np.linalg.norm(u_dirs,axis=-1)[:,np.newaxis]
 
+def check_if_line_in_bound(u, lb, ub):
+    # TODO replace OR check by something more meaningfull
+    ineq = []
+    alpha = Symbol('alpha', real=True)
+    for i in range(len(u)):
+        ineq.append([alpha*u[i] >= lb[i]])
+        ineq.append([alpha*u[i] <= ub[i]])
+    res = reduce_rational_inequalities(ineq, alpha)
+    return not isinstance(res, Or)

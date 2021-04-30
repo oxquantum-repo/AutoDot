@@ -23,20 +23,21 @@
       "condition": "mock_peak_check",
       "a": [0, 0],
       "b": [-1000, -1000],
-      "pause": 0.5,
+      "pause": 0,
       "verbose": true
     },
     "2d_lowres": {
       "func": "mock_measurement",
       "condition": "mock_score_func",
       "target": [-500, -250],
-      "pause": 1.0
+      "pause": 0
     },
     "2d_highres": {
       "func": "mock_measurement",
       "condition": "check_nothing",
-      "pause": 1.0
-    }
+      "pause": 0
+    },
+    "score_func": "mock_peak_score"
   },
 
   "detector": {
@@ -50,24 +51,14 @@
     "directions": [-1.0, -1.0, -1.0],
     "lb_box": [-2000, -2000, -2000],
     "bound": [-2000, -2000, -2000],
-    "num_samples": 50,
+    "num_samples": 5,
     "origin": [0, 0, 0],
     "ub_box": [0, 0, 0],
-    "sampler": "Paper_sampler"
+    "sampler": "CMAES_sampler"
   },
 
-  "gpc": {
-    "gpc_start": 10,
-    "d_tooclose": 20.0,
-    "gpc_on": true,
-    "gpc_list": [true, true, false],
-    "configs": {
-      "length_prior_mean": 500.0,
-      "length_prior_var": 100.0,
-      "var_prior_mean": 50.0,
-      "var_prior_var": 20.0,
-      "kernal": "Matern52"
-    }
+  "cmaes": {
+    "popsize": 10
   },
 
   "gpr": {
@@ -88,28 +79,15 @@
     "step_back": 100
   },
 
-  "sampling": {
-    "max_steps": 100000,
-    "n_part": 200,
-    "sigma": 25
-  },
-
   "track": [
-    "origin",
-    "bound",
-    "directions",
-    "samples",
     "extra_measure",
-    "d_vec",
-    "poff_vec",
-    "meas_each_axis",
-    "vols_each_axis",
     "conditional_idx",
+    "score",
     "vols_pinchoff",
-    "detected",
-    "r_vals",
     "times",
-    "poff_traces"
+    "r_vals",
+    "poff_traces",
+    "detected"
   ],
   "verbose": ["conditional_idx", "vols_pinchoff", "detected", "r_vals"]
 }
