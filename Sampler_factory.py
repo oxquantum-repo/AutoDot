@@ -3,10 +3,11 @@ import multiprocessing
 from pathlib import Path
 
 from .main_utils.dict_util import Tuning_dict
-from .main_utils.utils import Timer
+from .main_utils.utils import Timer, plot_conditional_idx_improvment
+from .main_utils.model_surf_utils import show_gpr_gpc
 import numpy as np
 from sympy import Symbol, Or
-from sympy.solvers.inequalities import reduce_rational_inequalities, solve_rational_inequalities
+from sympy.solvers.inequalities import reduce_rational_inequalities
 
 from .Sampling.gp import util
 from .Sampling.test_common import Tester
@@ -16,6 +17,8 @@ from .Sampling.gp.GP_models import GPC_heiracical, GP_base
 from .Sampling import random_walk as rw
 
 import cma
+import matplotlib.pyplot as plt
+
 
 class Base_Sampler(object):
     def __init__(self,configs):
@@ -174,6 +177,36 @@ class CMAES_sampler(Base_Sampler):
         return self.t.getd(*self.t['verbose'])
 
 
+    def plot(self, configs):
+        max_score = max([-np.inf if np.isinf(sc) else sc for sc in self.t['score']])
+        min_score = min([np.inf if np.isinf(sc) else sc for sc in self.t['score']])
+
+        def score_to_color(sc):
+            if np.isposinf(sc):
+                return max_score
+            elif np.isneginf(sc):
+                return min_score
+            dif = max_score - sc
+            return dif/(max_score-min_score)
+        print(self.t['vols_pinchoff'])
+        print(self.t['score'])
+        x = [p[0] for p in self.t['vols_pinchoff']]
+        y = [p[1] for p in self.t['vols_pinchoff']]
+        z = [p[2] for p in self.t['vols_pinchoff']]
+        colors = [score_to_color(sc) for sc in self.t['score']] 
+
+        fig = plt.figure()
+        ax = fig.add_subplot(projection='3d')
+        ax.scatter(x, y, z, c=colors, cmap='autumn')
+        plt.show()
+        for angle in range(0, 35):
+            ax.view_init(30, angle*10)
+            plt.draw()
+            plt.savefig("plots/angle_{}.png".format(angle))
+        plot_conditional_idx_improvment(self.t['conditional_idx'],configs)
+        
+
+
 
 class Paper_sampler(Base_Sampler):
     
@@ -258,7 +291,11 @@ class Paper_sampler(Base_Sampler):
      
         return self.t.getd(*self.t['verbose'])
     
-    
+
+    def plot(self, configs):
+        fields = ['vols_pinchoff','conditional_idx','origin']
+        show_gpr_gpc(self.gpr, configs, *self.t.get(*fields), gpc=self.gpc.predict_comb_prob)
+        plot_conditional_idx_improvment(self.t['conditional_idx'],configs)
     
     
 class Redo_sampler(Base_Sampler):
@@ -305,6 +342,11 @@ class Redo_sampler(Base_Sampler):
         self.t.save(track=self.t['track'])
         return self.t.getd(*self.t['verbose'])
     
+
+    def plot(self, configs):
+        fields = ['vols_pinchoff','conditional_idx','origin']
+        show_gpr_gpc(self.gpr, configs, *self.t.get(*fields), gpc=self.gpc.predict_comb_prob)
+        plot_conditional_idx_improvment(self.t['conditional_idx'],configs)
         
 def select_point(hypersurface, selection_model, origin, boundary_points, vols_pinchoff, directions, gpr_in_use=True, gpc_in_use=True, d_tooclose = 20.):
     """selects a point to investigate using thompson sampling, uniform sampling or random angles

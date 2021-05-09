@@ -8,8 +8,8 @@ import sys
 import json
 from .Sampler_factory import Paper_sampler, Redo_sampler
 from .Investigation.Investigation_factory import Investigation_stage
-from .main_utils.utils import Timer, plot_conditional_idx_improvment
-from .main_utils.model_surf_utils import show_gpr_gpc, show_dummy_device
+from .main_utils.utils import Timer
+from .main_utils.model_surf_utils import show_dummy_device
 from .Playground.mock_device import build_mock_device_with_json
 
 
@@ -82,7 +82,7 @@ def tune_with_playground_from_file(config_file):
         
     device = build_mock_device_with_json(configs['playground'])
     
-    if configs['playground'].get('plot',False): show_dummy_device(device,configs)
+   # if configs['playground'].get('plot',False): show_dummy_device(device,configs)
     
     plunger_gates = configs['plunger_gates']
     
@@ -106,8 +106,8 @@ def tune_with_playground_from_file(config_file):
     fields = ['vols_pinchoff','conditional_idx','origin']
     
     if configs['playground'].get('plot',False): 
-        show_gpr_gpc(sampler.gpr, configs, *sampler.t.get(*fields), gpc=sampler.gpc.predict_comb_prob)
-        plot_conditional_idx_improvment(sampler.t['conditional_idx'],configs)
+        sampler.plot(configs)
+
     
     return results,sampler
 
@@ -202,8 +202,7 @@ def redo_with_playground_from_file(config_file,pointcloud):
     fields = ['vols_pinchoff','conditional_idx','origin']
     
     if configs['playground'].get('plot',False): 
-        show_gpr_gpc(sampler.gpr, configs, *sampler.t.get(*fields), gpc=sampler.gpc.predict_comb_prob)
-        plot_conditional_idx_improvment(sampler.t['conditional_idx'],configs)
+        sampler.plot(configs)
     
     return results,sampler
 
