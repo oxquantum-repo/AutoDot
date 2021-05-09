@@ -9,7 +9,7 @@
       }
     },
     "ndim": 3,
-    "plot": false
+    "plot": true
   },
 
   "plunger_gates": [1, 2],
@@ -37,7 +37,10 @@
       "condition": "check_nothing",
       "pause": 0
     },
-    "score_func": "mock_peak_score"
+    "score_func": {
+      "func": "mock_stage_score",
+      "stage": 2
+    }
   },
 
   "detector": {

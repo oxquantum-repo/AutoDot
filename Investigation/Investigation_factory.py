@@ -19,8 +19,9 @@ class Investigation_stage():
         
         self.configure_investigation_sequence(configs)
 
-        self.score_function = getattr(score_functions,configs.get('score_func', 'score_nothing'))
-        
+        self.score_function_config = configs.get('score_func', {'func': 'score_nothing'})
+        self.score_function = getattr(score_functions,self.score_function_config.get('func'))
+
         self.inv_max = len(self.aquisition_functions)
         self.isdynamic = configs.get('cond_meas',[False]*self.inv_max)
         
@@ -98,7 +99,7 @@ class Investigation_stage():
         results_full['extra_measure'] = results
         results_full['conditional_idx'] = self.cond[i]
         results_full['times'] = self.timer.times_list[-1]
-        results_full['score'] = self.score_function(results_full)
+        results_full['score'] = self.score_function(results_full, self.score_function_config)
         return results_full
       
         
