@@ -27,9 +27,8 @@ def plot_conditional_idx_improvment(cond_idx, config,cond_count=2,save=True):
     plt.ylabel("Empirical probability of conditional idx reaching %i"%cond_count)
     
     if save: plt.savefig(config['save_dir']+'improvment.png')
-
     plt.ion()
-    plt.show()
+    plt.show(block=True)
 
 
 

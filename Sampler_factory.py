@@ -134,31 +134,37 @@ class CMAES_sampler(Base_Sampler):
             # GET UNITECTOR
             u = v / np.sqrt(np.sum(np.square(v)))
 
-            # ESTIMATE R AFTER FIRST OPTIMIZATION OF GPR (do_optim)
-            r_est = estimate_r(u, self.gpr, do_gpr_p1) if i > 11 and do_gpr else None
-            self.timer.logtime()
-
-            # MAP VECTOR TO POINT IN PINCHOFF AREA
-            r, vols_pinchoff, found, t_firstjump, poff_trace = self.tester.get_r(v, origin=self.t['origin'], r_est=r_est)
-            self.timer.logtime()
-            self.t.app(r_vals=r,vols_pinchoff=vols_pinchoff, detected=found, poff_traces=poff_trace)
-
-            # CHECK FOR PRUNING
-            prune_results = self.tester.measure_dvec(vols_pinchoff+(self.t['step_back']*np.array(self.t['directions']))) if do_pruning else [None]*4
-            self.timer.logtime()
-            self.t.app(**dict(zip(('d_vec', 'poff_vec', 'meas_each_axis', 'vols_each_axis'),prune_results)))
-
             # CHECK IF LINE OF UNIT VECTOR IS IN BOUND
             in_bound = check_if_line_in_bound(u, self.t.get("real_lb")[0], self.t.get("real_ub")[0]) if self.t['pruning_on'] else True
 
-            # DO MEASUREMENTS
-            em_results = self.t['do_extra_meas'](vols_pinchoff, th_score) if found and in_bound else {'conditional_idx': 0, 'score': np.inf}
-            self.timer.logtime()
-            print("score: ", em_results['score'])
-            self.t.app(extra_measure=em_results), self.t.app(conditional_idx=em_results['conditional_idx']), self.t.app(score=em_results['score'])
+            if in_bound:
+                # ESTIMATE R AFTER FIRST OPTIMIZATION OF GPR (do_optim)
+                r_est = estimate_r(u, self.gpr, do_gpr_p1) if i > 11 and do_gpr else None
+                self.timer.logtime()
 
-            # APPLY RESULTS FROM PRUNING-CECK
-            if do_pruning: self.t.add(**util.compute_hardbound(*self.t.getl('poff_vec', 'detected', 'vols_pinchoff'), *self.t.get('step_back', 'origin', 'bound')))
+                # MAP VECTOR TO POINT IN PINCHOFF AREA
+                r, vols_pinchoff, found, t_firstjump, poff_trace = self.tester.get_r(v, origin=self.t['origin'], r_est=r_est)
+                self.timer.logtime()
+                self.t.app(r_vals=r,vols_pinchoff=vols_pinchoff, detected=found, poff_traces=poff_trace)
+
+                # CHECK FOR PRUNING
+                prune_results = self.tester.measure_dvec(vols_pinchoff+(self.t['step_back']*np.array(self.t['directions']))) if do_pruning else [None]*4
+                self.timer.logtime()
+                self.t.app(**dict(zip(('d_vec', 'poff_vec', 'meas_each_axis', 'vols_each_axis'),prune_results)))
+
+                # DO MEASUREMENTS
+                em_results = self.t['do_extra_meas'](vols_pinchoff, th_score) if found else {'conditional_idx': 0, 'score': np.inf}
+                self.timer.logtime()
+                print("score: ", em_results['score'])
+                self.t.app(extra_measure=em_results), self.t.app(conditional_idx=em_results['conditional_idx']), self.t.app(score=em_results['score'])
+
+                # APPLY RESULTS FROM PRUNING-CECK
+                if do_pruning: self.t.add(**util.compute_hardbound(*self.t.getl('poff_vec', 'detected', 'vols_pinchoff'), *self.t.get('step_back', 'origin', 'bound')))
+
+                
+            else:
+                em_results = {'conditional_idx': 0, 'score': np.inf}
+                self.t.app(extra_measure=em_results), self.t.app(conditional_idx=em_results['conditional_idx']), self.t.app(score=em_results['score'])
 
             # TRAIN GPR
             X_train_all, X_train, _ = util.merge_data(*self.t.get('vols_pinchoff', 'detected', 'vols_pinchoff_axes', 'vols_detected_axes'))
@@ -188,8 +194,6 @@ class CMAES_sampler(Base_Sampler):
                 return min_score
             dif = max_score - sc
             return dif/(max_score-min_score)
-        print(self.t['vols_pinchoff'])
-        print(self.t['score'])
         x = [p[0] for p in self.t['vols_pinchoff']]
         y = [p[1] for p in self.t['vols_pinchoff']]
         z = [p[2] for p in self.t['vols_pinchoff']]
@@ -198,11 +202,7 @@ class CMAES_sampler(Base_Sampler):
         fig = plt.figure()
         ax = fig.add_subplot(projection='3d')
         ax.scatter(x, y, z, c=colors, cmap='autumn')
-        plt.show()
-        for angle in range(0, 35):
-            ax.view_init(30, angle*10)
-            plt.draw()
-            plt.savefig("plots/angle_{}.png".format(angle))
+        plt.show(block=True)
         plot_conditional_idx_improvment(self.t['conditional_idx'],configs)
         
 
