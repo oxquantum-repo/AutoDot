@@ -1,3 +1,4 @@
+from .Sampling.evaluation_order import get_evaluation_order
 import time
 import multiprocessing
 from pathlib import Path
@@ -121,7 +122,10 @@ class CMAES_sampler(Base_Sampler):
         # PICK VECTORS
         vecs = self.cmaes.ask()
 
-        for v in vecs:
+        last_point = self.t['vols_pinchoff'][-1] if self.t['iter'] != 0 else len(self.t['origin'])*[-1]
+        eval_order = get_evaluation_order(np.array(vecs), last_point)
+        for eval_idx in eval_order:
+            v = vecs[eval_idx]
             self.timer.start()
             i = self.t['iter']
             print("------------###Child %s###------------"%(i % self.t['popsize']))
@@ -177,7 +181,10 @@ class CMAES_sampler(Base_Sampler):
             self.t['iter'] += 1
 
         # TELL CMAES RESUTLS
-        self.cmaes.tell(vecs, np.array(self.t['score'][-len(vecs):]))
+        scores = np.zeros(len(vecs))
+        for score_idx, eval_idx in enumerate(eval_order):
+            scores[eval_idx] = self.t['score'][score_idx-len(vecs)]
+        self.cmaes.tell(vecs, scores)
 
         self.cmaes.disp()
         return self.t.getd(*self.t['verbose'])
