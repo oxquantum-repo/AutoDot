@@ -19,8 +19,11 @@ class Investigation_stage():
         
         self.configure_investigation_sequence(configs)
 
-        self.score_function_config = configs.get('score_func', {'func': 'score_nothing'})
-        self.score_function = getattr(score_functions,self.score_function_config.get('func'))
+        self.score_function_config = configs.get('score_func', {})
+        sfunc = self.score_function_config.get('func', 'score_nothing')
+        if isinstance(sfunc, str):
+            sfunc = getattr(score_functions,sfunc)
+        self.score_function = score_function_config.get('func')
 
         self.inv_max = len(self.aquisition_functions)
         self.isdynamic = configs.get('cond_meas',[False]*self.inv_max)
