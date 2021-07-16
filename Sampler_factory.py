@@ -86,7 +86,7 @@ class CMAES_sampler(Base_Sampler):
     def __init__(self, configs):
         super().__init__(configs)
 
-        configs['cmaes'] = self.setup_cmaes(configs['cmaes'], len(configs['general']['origin']))
+        configs['cmaes'] = self.setup_cmaes(configs['cmaes'], len(self.t['origin']))
 
         self.t.add(d_r=self.t['detector']['d_r'])#bodge
 
@@ -167,8 +167,10 @@ class CMAES_sampler(Base_Sampler):
 
                 
             else:
+                empty_parameters = ["r_vals", "vols_pinchoff", "d_vev", "poff_vec", "meas_each_axis", "vols_each_axis"]
+                self.t.app(**dict(zip(empty_parameter, len(empty_parameters)*[None])))
                 em_results = {'conditional_idx': 0, 'score': np.inf}
-                self.t.app(extra_measure=em_results), self.t.app(conditional_idx=em_results['conditional_idx']), self.t.app(score=em_results['score'])
+                self.t.app(extra_measure=em_results, conditional_idx=em_results['conditional_idx'], score=em_results['score'], detected=False)
 
             # TRAIN GPR
             X_train_all, X_train, _ = util.merge_data(*self.t.get('vols_pinchoff', 'detected', 'vols_pinchoff_axes', 'vols_detected_axes'))
@@ -567,3 +569,4 @@ def check_if_line_in_bound(u, lb, ub):
         ineq.append([alpha*u[i] <= ub[i]])
     res = reduce_rational_inequalities(ineq, alpha)
     return not isinstance(res, Or)
+
