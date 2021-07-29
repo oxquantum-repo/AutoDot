@@ -23,7 +23,7 @@ class Investigation_stage():
         sfunc = score_function_config.get('func', 'score_nothing')
         if isinstance(sfunc, str):
             sfunc = getattr(score_functions,sfunc)
-        self.score_function = lambda invest_result: sfunc(invest_results, score_function_config)
+        self.score_function = lambda invest_result: sfunc(invest_result, score_function_config)
 
         self.inv_max = len(self.aquisition_functions)
         self.isdynamic = configs.get('cond_meas',[False]*self.inv_max)
