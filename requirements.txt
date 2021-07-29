@@ -9,3 +9,5 @@ mkl
 pyDOE
 sympy
 cma
+scikit-image
+sympy
