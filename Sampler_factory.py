@@ -168,7 +168,7 @@ class CMAES_sampler(Base_Sampler):
                 
             else:
                 empty_parameters = ["r_vals", "vols_pinchoff", "d_vev", "poff_vec", "meas_each_axis", "vols_each_axis"]
-                self.t.app(**dict(zip(empty_parameter, len(empty_parameters)*[None])))
+                self.t.app(**dict(zip(empty_parameters, len(empty_parameters)*[None])))
                 em_results = {'conditional_idx': 0, 'score': np.inf}
                 self.t.app(extra_measure=em_results, conditional_idx=em_results['conditional_idx'], score=em_results['score'], detected=False)
 
