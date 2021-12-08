@@ -1,4 +1,4 @@
-from .Sampling.evaluation_order import get_evaluation_order
+from .Sampling.evaluation_order import ChristofidesAlgorithmEvaluationOrder
 import time
 import multiprocessing
 from pathlib import Path
@@ -123,7 +123,7 @@ class CMAES_sampler(Base_Sampler):
         vecs = self.cmaes.ask()
 
         last_point = self.t['vols_pinchoff'][-1] if self.t['iter'] != 0 else len(self.t['origin'])*[-1]
-        eval_order = get_evaluation_order(np.array(vecs), last_point)
+        eval_order = ChristofidesAlgorithmEvaluationOrder(np.array(vecs), last_point).get_order()
         for eval_idx in eval_order:
             v = vecs[eval_idx]
             self.timer.start()
