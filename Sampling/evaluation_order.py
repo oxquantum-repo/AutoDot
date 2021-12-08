@@ -1,9 +1,10 @@
+from abc import ABC, abstractmethod
 import numpy as np
 from heapq import heapify, heappush, heappop
 import random
 import math
 
-class BaseEvaluationOrder:
+class BaseEvaluationOrder(ABC):
     """
     Interface of a class to determine the evaluation-order of a population of vectors.
     """
@@ -11,11 +12,12 @@ class BaseEvaluationOrder:
         self.population = population
         self.curr_pos = curr_pos
     
+    @abstractmethod
     def get_order(self):
         pass
 
 
-class ChristofidesAlgorithmEvaluationOrder(BaseEvaluationOrder):
+class ChristofidesAngleEvaluationOrder(BaseEvaluationOrder):
     """
     Evaluates the evaluation order with Christofides Algorithm,
     an approximation of TSP. 
@@ -23,7 +25,7 @@ class ChristofidesAlgorithmEvaluationOrder(BaseEvaluationOrder):
     """
 
     def __init__(self, population, curr_pos):
-        super.__init__(population, curr_pos)
+        super().__init__(population, curr_pos)
         self.adj_matrix = self.build_graph()
 
 
@@ -58,7 +60,7 @@ class ChristofidesAlgorithmEvaluationOrder(BaseEvaluationOrder):
 
     def get_weight(vA, vB):
         """
-        Uses the angle between two vectors as weight.
+        Returns the angle between two vectors.
         """
         def dotproduct(v1, v2):
             return sum((a*b) for a, b in zip(v1, v2))
@@ -70,6 +72,24 @@ class ChristofidesAlgorithmEvaluationOrder(BaseEvaluationOrder):
             return 0
 
         return abs(math.acos(dotproduct(vA, vB) / (length(vA) * length(vB))))
+
+
+class ChristofidesDistanceEvaluationOrderDistance(ChristofidesAngleEvaluationOrder):
+    """
+    Evaluates the evaluation order with Christofides Algorithm,
+    an approximation of TSP. 
+    It tries to minimize the sum of distances between vectors. 
+    """
+
+    def __init__(self, population, curr_pos):
+        super().__init__(population, curr_pos)
+
+
+    def get_weight(vA, vB):
+        """
+        Returns the distance between two vectors.
+        """
+        return math.sqrt((a-b)**2 for a, b in zip(vA, vB))
 
 
 def minimum_spanning_tree(graph):
