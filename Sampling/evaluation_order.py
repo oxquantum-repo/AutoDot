@@ -1,31 +1,17 @@
-from abc import ABC, abstractmethod
 import numpy as np
+from abc import ABC, abstractmethod
 from heapq import heapify, heappush, heappop
 import random
 import math
 
-class BaseEvaluationOrder(ABC):
-    """
-    Interface of a class to determine the evaluation-order of a population of vectors.
+class EvaluationOrder(ABC):
+    """"
+    Abstract Class to evaluate the evaluation order with Christofides Algorithm,
+    an approximation of TSP. 
     """
     def __init__(self, population, curr_pos):
         self.population = population
         self.curr_pos = curr_pos
-    
-    @abstractmethod
-    def get_order(self):
-        pass
-
-
-class ChristofidesAngleEvaluationOrder(BaseEvaluationOrder):
-    """
-    Evaluates the evaluation order with Christofides Algorithm,
-    an approximation of TSP. 
-    It tries to minimize the sum of angles between vectors. 
-    """
-
-    def __init__(self, population, curr_pos):
-        super().__init__(population, curr_pos)
         self.adj_matrix = self.build_graph()
 
 
@@ -57,6 +43,17 @@ class ChristofidesAngleEvaluationOrder(BaseEvaluationOrder):
         shaped_graph = np.reshape(unshaped_graph, newshape=(num_child, num_child))
         return shaped_graph
 
+    @abstractmethod
+    def get_weight(self, vA, vB):
+        pass
+
+
+class EvaluationOrderAngle(EvaluationOrder):
+    """
+    Evaluates the evaluation order with Christofides Algorithm,
+    an approximation of TSP. 
+    It tries to minimize the sum of angles between vectors. 
+    """
 
     def get_weight(self, vA, vB):
         """
@@ -74,22 +71,32 @@ class ChristofidesAngleEvaluationOrder(BaseEvaluationOrder):
         return abs(math.acos(dotproduct(vA, vB) / (length(vA) * length(vB))))
 
 
-class ChristofidesDistanceEvaluationOrder(ChristofidesAngleEvaluationOrder):
+class EvaluationOrderEuclideanDistance(EvaluationOrder):
     """
     Evaluates the evaluation order with Christofides Algorithm,
     an approximation of TSP. 
     It tries to minimize the sum of distances between vectors. 
     """
 
-    def __init__(self, population, curr_pos):
-        super().__init__(population, curr_pos)
+    def get_weight(self, vA, vB):
+        """
+        Returns the euclidean distance between two vectors.
+        """
+        return math.sqrt(sum((a-b)**2 for a, b in zip(vA, vB)))
 
+
+class EvaluationOrderManhattanDistance(EvaluationOrder):
+    """
+    Evaluates the evaluation order with Christofides Algorithm,
+    an approximation of TSP. 
+    It tries to minimize the sum of distances between vectors. 
+    """
 
     def get_weight(self, vA, vB):
         """
-        Returns the distance between two vectors.
+        Returns the manhattan distance between two vectors.
         """
-        return math.sqrt((a-b)**2 for a, b in zip(vA, vB))
+        return sum(abs(a-b) for a, b in zip(vA, vB))
 
 
 def minimum_spanning_tree(graph):

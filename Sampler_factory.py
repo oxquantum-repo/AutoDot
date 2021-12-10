@@ -106,7 +106,7 @@ class CMAES_sampler(Base_Sampler):
         #TODO insert default parameter 
         #TODO undefined dimensions 
 
-        evaluation_order_class = configs.pop('evaluation_order', evaluation_order.ChristofidesAngleEvaluationOrder)
+        evaluation_order_class = configs.pop('evaluation_order', evaluation_order.EvaluationOrderAngle)
         if isinstance(evaluation_order_class, str):
             evaluation_order_class = getattr(evaluation_order,evaluation_order_class)
         evaluation_order_func = lambda population, curr_pos: evaluation_order_class(population, curr_pos).get_order()
