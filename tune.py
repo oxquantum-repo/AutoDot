@@ -70,16 +70,16 @@ def tune_with_pygor_from_file(config_file):
     return tune(jump,measure,investigation_stage,configs)
     
     
-    
-    
-    
 def tune_with_playground_from_file(config_file):
     
     with open(config_file) as f:
         configs = json.load(f)
-        
-        
-        
+
+    return tune_with_playground(configs)   
+
+
+def tune_with_playground(configs):
+
     device = build_mock_device_with_json(configs['playground'])
     
    # if configs['playground'].get('plot',False): show_dummy_device(device,configs)
