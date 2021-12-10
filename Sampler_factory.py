@@ -1,4 +1,4 @@
-from .Sampling.evaluation_order import get_evaluation_order
+from .Sampling import evaluation_order
 import time
 import multiprocessing
 from pathlib import Path
@@ -106,6 +106,12 @@ class CMAES_sampler(Base_Sampler):
         #TODO insert default parameter 
         #TODO undefined dimensions 
 
+        evaluation_order_class = configs.pop('evaluation_order', evaluation_order.EvaluationOrderAngle)
+        if isinstance(evaluation_order_class, str):
+            evaluation_order_class = getattr(evaluation_order,evaluation_order_class)
+        evaluation_order_func = lambda population, curr_pos: evaluation_order_class(population, curr_pos).get_order()
+        self.t.add(get_evaluation_order=evaluation_order_func)
+
         cma_option_default = {"bounds": [-np.inf, 0], "popsize": 10}
         x0, sigma0 = configs.pop('x0', dim * [-1]), configs.pop('sigma0', 1)
         for option, value in cma_option_default.items():
@@ -123,7 +129,7 @@ class CMAES_sampler(Base_Sampler):
         vecs = self.cmaes.ask()
 
         last_point = self.t['vols_pinchoff'][-1] if self.t['iter'] != 0 else len(self.t['origin'])*[-1]
-        eval_order = get_evaluation_order(np.array(vecs), last_point)
+        eval_order = self.t['get_evaluation_order'](np.array(vecs), last_point)
         for eval_idx in eval_order:
             v = vecs[eval_idx]
             self.timer.start()
