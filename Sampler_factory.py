@@ -129,7 +129,7 @@ class CMAES_sampler(Base_Sampler):
         vecs = self.cmaes.ask()
 
         last_point = self.t['vols_pinchoff'][-1] if self.t['iter'] != 0 else len(self.t['origin'])*[-1]
-        eval_order = self.t['get_evaluation_order'](np.array(vecs), last_point).get_order()
+        eval_order = self.t['get_evaluation_order'](np.array(vecs), last_point)
         for eval_idx in eval_order:
             v = vecs[eval_idx]
             self.timer.start()

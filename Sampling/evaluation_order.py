@@ -58,7 +58,7 @@ class ChristofidesAngleEvaluationOrder(BaseEvaluationOrder):
         return shaped_graph
 
 
-    def get_weight(vA, vB):
+    def get_weight(self, vA, vB):
         """
         Returns the angle between two vectors.
         """
@@ -74,7 +74,7 @@ class ChristofidesAngleEvaluationOrder(BaseEvaluationOrder):
         return abs(math.acos(dotproduct(vA, vB) / (length(vA) * length(vB))))
 
 
-class ChristofidesDistanceEvaluationOrderDistance(ChristofidesAngleEvaluationOrder):
+class ChristofidesDistanceEvaluationOrder(ChristofidesAngleEvaluationOrder):
     """
     Evaluates the evaluation order with Christofides Algorithm,
     an approximation of TSP. 
@@ -85,7 +85,7 @@ class ChristofidesDistanceEvaluationOrderDistance(ChristofidesAngleEvaluationOrd
         super().__init__(population, curr_pos)
 
 
-    def get_weight(vA, vB):
+    def get_weight(self, vA, vB):
         """
         Returns the distance between two vectors.
         """
