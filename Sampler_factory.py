@@ -86,7 +86,7 @@ class CMAES_sampler(Base_Sampler):
     def __init__(self, configs):
         super().__init__(configs)
 
-        configs['cmaes'] = self.setup_cmaes(configs['cmaes'], len(self.t['origin']))
+        configs['cmaes'] = self.setup_cmaes(configs, len(self.t['origin']))
 
         self.t.add(d_r=self.t['detector']['d_r'])#bodge
 
@@ -105,20 +105,22 @@ class CMAES_sampler(Base_Sampler):
     def setup_cmaes(self, configs, dim):
         #TODO insert default parameter 
         #TODO undefined dimensions 
-
-        evaluation_order_class = configs.pop('evaluation_order', evaluation_order.EvaluationOrderAngle)
+        configs_cma = configs['cmaes']
+        evaluation_order_class = configs_cma.pop('evaluation_order', evaluation_order.EvaluationOrderAngle)
         if isinstance(evaluation_order_class, str):
             evaluation_order_class = getattr(evaluation_order,evaluation_order_class)
         evaluation_order_func = lambda population, curr_pos: evaluation_order_class(population, curr_pos).get_order()
         self.t.add(get_evaluation_order=evaluation_order_func)
 
-        cma_option_default = {"bounds": [-np.inf, 0], "popsize": 10}
-        x0, sigma0 = configs.pop('x0', dim * [-1]), configs.pop('sigma0', 1)
+        cma_option_default = {
+            "bounds": [[-np.inf if lb != 0 else lb for lb in configs['general']['lb_box']], [np.inf if ub != 0 else ub for ub in configs['general']['ub_box']]], 
+            "popsize": 10}
+        x0, sigma0 = configs_cma.pop('x0', configs['general']['directions']), configs_cma.pop('sigma0', 1)
         for option, value in cma_option_default.items():
-            configs.setdefault(option, value)
+            configs_cma.setdefault(option, value)
 
-        self.cmaes = cma.CMAEvolutionStrategy(x0, sigma0, configs)
-        return {**configs, 'x0': x0, 'sigma0': sigma0}
+        self.cmaes = cma.CMAEvolutionStrategy(x0, sigma0, configs_cma)
+        return {**configs_cma, 'x0': x0, 'sigma0': sigma0}
 
 
     def do_iter(self):
