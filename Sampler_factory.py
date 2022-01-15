@@ -1,3 +1,4 @@
+from .main_utils.cmaes_config_angle import CMAESConfig
 from .Sampling import evaluation_order
 import time
 import multiprocessing
@@ -18,6 +19,7 @@ from .Sampling.gp.GP_models import GPC_heiracical, GP_base
 from .Sampling import random_walk as rw
 
 import cma
+import math
 import matplotlib.pyplot as plt
 
 
@@ -111,15 +113,19 @@ class CMAES_sampler(Base_Sampler):
             evaluation_order_class = getattr(evaluation_order,evaluation_order_class)
         evaluation_order_func = lambda population, curr_pos: evaluation_order_class(population, curr_pos).get_order()
         self.t.add(get_evaluation_order=evaluation_order_func)
-
+        
+        # SAMPLE UNITVECTORS WITH ANGLES
+        dflt_config = CMAESConfig(configs['general']['lb_box'], configs['general']['ub_box'])
+    
         cma_option_default = {
-            "bounds": [[-np.inf if lb != 0 else lb for lb in configs['general']['lb_box']], [np.inf if ub != 0 else ub for ub in configs['general']['ub_box']]], 
-            "popsize": 10}
-        x0, sigma0 = configs_cma.pop('x0', configs['general']['directions']), configs_cma.pop('sigma0', 1)
+            "bounds": [dflt_config.get_lower_bound(), dflt_config.get_upper_bound()], 
+            "popsize": 6}
+        x0, sigma0 = configs_cma.pop('x0', dflt_config.get_x0()), configs_cma.pop('sigma0', dflt_config.get_sigma0())
         for option, value in cma_option_default.items():
             configs_cma.setdefault(option, value)
 
         self.cmaes = cma.CMAEvolutionStrategy(x0, sigma0, configs_cma)
+        self.cmaes_config = dflt_config
         return {**configs_cma, 'x0': x0, 'sigma0': sigma0}
 
 
@@ -128,12 +134,15 @@ class CMAES_sampler(Base_Sampler):
         th_score=0.01
 
         # PICK VECTORS
-        vecs = self.cmaes.ask()
+        vecs_angle = self.cmaes.ask()
 
-        last_point = self.t['vols_pinchoff'][-1] if self.t['iter'] != 0 else len(self.t['origin'])*[-1]
+        last_point = convert_angle_to_euclide_vector(self.cmaes_config.get_x0())
+        if self.t['iter'] != 0:
+            last_point = self.t['vols_pinchoff'][-1] 
+
+        vecs = [convert_angle_to_euclide_vector(v_angle) for v_angle in vecs_angle]
         eval_order = self.t['get_evaluation_order'](np.array(vecs), last_point)
         for eval_idx in eval_order:
-            v = vecs[eval_idx]
             self.timer.start()
             i = self.t['iter']
             print("------------###Child %s###------------"%(i % self.t['popsize']))
@@ -143,7 +152,8 @@ class CMAES_sampler(Base_Sampler):
             do_gpr_p1 = (i-1>self.t['gpr_start']) and self.t['gpr_on']
             print("GPR:",do_gpr,"GPR1:",do_gpr_p1,"Optim:",do_optim)
 
-            # GET UNITECTOR
+            # CONVERT VECTOR FROM ANGLE TO EUCLID
+            v = vecs[eval_idx]
             u = v / np.sqrt(np.sum(np.square(v)))
 
             # CHECK IF LINE OF UNIT VECTOR IS IN BOUND
@@ -194,7 +204,7 @@ class CMAES_sampler(Base_Sampler):
         scores = np.zeros(len(vecs))
         for score_idx, eval_idx in enumerate(eval_order):
             scores[eval_idx] = self.t['score'][score_idx-len(vecs)]
-        self.cmaes.tell(vecs, scores)
+        self.cmaes.tell(vecs_angle, scores)
 
         self.cmaes.disp()
         return self.t.getd(*self.t['verbose'])
@@ -578,3 +588,15 @@ def check_if_line_in_bound(u, lb, ub):
     res = reduce_rational_inequalities(ineq, alpha)
     return not isinstance(res, Or)
 
+
+def convert_angle_to_euclide_vector(v_angle):
+    """"
+    Converts an vector saved as angles between the components
+    to an euclid vector.
+    """
+    v = [math.cos(v_angle[0]), math.sin(v_angle[0])]
+    for i in range(1, len(v_angle)):
+        scale_fac = v[i]/math.cos(v_angle[i])
+        v.append(scale_fac*math.sin(v_angle[i]))
+
+    return v / np.sqrt(np.sum(np.square(v)))
